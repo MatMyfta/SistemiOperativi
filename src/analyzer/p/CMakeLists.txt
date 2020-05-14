@@ -1,0 +1,21 @@
+add_executable(p)
+target_sources(p
+  PRIVATE
+  main.c
+  p_self.c
+  )
+target_link_libraries(p
+  PRIVATE
+  common
+  p_api
+  )
+
+add_library(p_api)
+target_sources(p_api
+  PRIVATE
+  p.c
+  )
+target_link_libraries(p_api
+  PRIVATE
+  common
+  )
