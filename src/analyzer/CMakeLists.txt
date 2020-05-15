@@ -1,6 +1,4 @@
-add_executable(analyzer)
-target_sources(analyzer
-  PRIVATE
+add_executable(analyzer
   main.c
   )
 target_link_libraries(analyzer

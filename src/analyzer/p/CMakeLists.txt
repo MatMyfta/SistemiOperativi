@@ -1,6 +1,4 @@
-add_executable(p)
-target_sources(p
-  PRIVATE
+add_executable(p
   main.c
   p_self.c
   )
@@ -10,7 +8,7 @@ target_link_libraries(p
   p_api
   )
 
-add_library(p_api)
+add_library(p_api STATIC "")
 target_sources(p_api
   PRIVATE
   p.c

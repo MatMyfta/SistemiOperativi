@@ -1,6 +1,4 @@
-add_executable(counter)
-target_sources(counter
-  PRIVATE
+add_executable(counter
   main.c
   counter_self.c
   )
@@ -11,7 +9,7 @@ target_link_libraries(counter
   p_api
   )
 
-add_library(counter_api)
+add_library(counter_api STATIC "")
 target_sources(counter_api
   PRIVATE
   counter.c
