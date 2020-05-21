@@ -1,0 +1,10 @@
+add_executable(analyzer
+  main.c
+  )
+target_link_libraries(analyzer
+  PRIVATE
+  counter_api
+  )
+add_subdirectory(counter)
+add_subdirectory(p)
+add_subdirectory(q)
