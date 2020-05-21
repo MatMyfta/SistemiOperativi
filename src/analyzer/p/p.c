@@ -19,7 +19,7 @@ unitnos_p *unitnos_p_create(void) {
   if (!process) {
     return NULL;
   } else {
-    unitnos_p *p = malloc(sizeof(p));
+    unitnos_p *p = malloc(sizeof(unitnos_p)); // Lijun: tu riportavi "p" e ho pensato fosse una svista
     p->process = process;
     return p;
   }

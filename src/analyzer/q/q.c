@@ -1,6 +1,9 @@
 #include "q.h"
 
 #include "../../process.h"
+#include "../../utils.h"
+#define LOG_TAG "q_parent"
+#include "../../logger.h"
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -9,10 +12,10 @@ struct unitnos_q {
   unitnos_process *process;
 };
 
-unitnos_q *unitnos_q_create() {
+unitnos_q *unitnos_q_create(void) {
   unitnos_q *q = malloc(sizeof(unitnos_q));
-  char *const argv[] = {(char *)NULL};
-  unitnos_process_open("q", argv);
+  /*char *const argv[] = {(char *)NULL};
+  unitnos_process_open("q", argv);*/
   return q;
 
 }
