@@ -10,6 +10,8 @@ char* concat(const char *s1, const char *s2);
 int validate(char *path, char (*(*lines))[PATH_MAX], int *rows);
 
 
+
+
 int main(int argc, char *argv[]) {  // IN DOCKER NON FUNZIONA dunno why
 
 	if(argc!=2) {
@@ -30,7 +32,7 @@ int main(int argc, char *argv[]) {  // IN DOCKER NON FUNZIONA dunno why
 
 
 
-int validate(char *path, char (*(*lines))[PATH_MAX], int *rows){ 
+int validate(char *path, char (*(*indexes))[PATH_MAX], int *rows){ 
 	FILE *fp; 
 	int rt_value=0;
 	
@@ -44,31 +46,31 @@ int validate(char *path, char (*(*lines))[PATH_MAX], int *rows){
         	exit(-1);
     	}
 	
-   	if (!((*lines) = malloc (((*rows)+1)*sizeof **lines))) { 
+   	if (!((*indexes) = malloc (((*rows)+1)*sizeof **indexes))) { 
         	printf("Out of memory\n" );
         	exit(-1);
     	} else (*rows)=1;
 
-	while (fgets ((*(lines))[(*rows)-1], PATH_MAX, fp)) {	
-		if((*rows)==1 && strstr((*(lines))[(*rows)-1], "/bin/find:") != NULL) { 
-			free((*lines));
+	while (fgets ((*(indexes))[(*rows)-1], PATH_MAX, fp)) {	
+		if((*rows)==1 && strstr((*(indexes))[(*rows)-1], "/bin/find:") != NULL) { 
+			free((*indexes));
 			rt_value=0;
 			break;
 		} else rt_value = 1;   
 
-        	char *p = (*(lines))[(*rows)-1];                  
+        	char *p = (*(indexes))[(*rows)-1];                  
         	while(*p != '\n') p++;    
         	*p = 0;
-  		void *tmp = realloc ((*lines), ((*rows)+1) * sizeof **lines);
+  		void *tmp = realloc ((*indexes), ((*rows)+1) * sizeof **indexes);
    		if (!tmp) {     
        			printf ("Out of memory\n");
         		break;
     		}
-    		(*lines) = tmp;
+    		(*indexes) = tmp;
     		(*rows)++;
  	}
 	(*rows)--;
-	//for (int i = 0; i < (*rows)-1; i++) printf (" line[%2d] : '%s'\n", i + 1, (*(lines))[i]);
+	//for (int i = 0; i < (*rows)-1; i++) printf (" line[%2d] : '%s'\n", i + 1, (*(indexes))[i]);
  	fclose (fp);
   
 
@@ -94,3 +96,8 @@ char* concat(const char *s1, const char *s2)
     strcat(result, s2); 
     return result;
 }
+
+
+
+
+
