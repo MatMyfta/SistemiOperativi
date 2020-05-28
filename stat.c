@@ -12,7 +12,7 @@ int validate(char *path, char (*(*lines))[PATH_MAX], int *rows);
 
 
 
-int main(int argc, char *argv[]) {  // IN DOCKER NON FUNZIONA dunno why
+int main(int argc, char *argv[]) {
 
 	if(argc!=2) {
 		printf ("Usage execname <path>\n");
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {  // IN DOCKER NON FUNZIONA dunno why
 		printf("<path> not valid\n");
 		return -2;
 	}
-
+	free(indexes);
 	return 0;
 }
 
@@ -36,6 +36,11 @@ int validate(char *path, char (*(*indexes))[PATH_MAX], int *rows){
 	FILE *fp; 
 	int rt_value=0;
 	
+	/*
+	* In docker il comando find si trova in /usr/bin/find
+  * Comportamenti analoghi e controllati per entrambi gli ambienti.
+	*/
+
 	char *command = concat("/bin/find ", path); // Not able to intercept stderr
 	command = concat(command," -type f 2>&1"); //   stderr goes on stdout
 	fp = popen(command, "r"); 
@@ -51,13 +56,7 @@ int validate(char *path, char (*(*indexes))[PATH_MAX], int *rows){
         	exit(-1);
     	} else (*rows)=1;
 
-	while (fgets ((*(indexes))[(*rows)-1], PATH_MAX, fp)) {	
-		if((*rows)==1 && strstr((*(indexes))[(*rows)-1], "/bin/find:") != NULL) { 
-			free((*indexes));
-			rt_value=0;
-			break;
-		} else rt_value = 1;   
-
+	while (fgets ((*(indexes))[(*rows)-1], PATH_MAX, fp)) {	  
         	char *p = (*(indexes))[(*rows)-1];                  
         	while(*p != '\n') p++;    
         	*p = 0;
@@ -72,7 +71,11 @@ int validate(char *path, char (*(*indexes))[PATH_MAX], int *rows){
 	(*rows)--;
 	//for (int i = 0; i < (*rows)-1; i++) printf (" line[%2d] : '%s'\n", i + 1, (*(indexes))[i]);
  	fclose (fp);
-  
+
+	if((*rows)==1 && strstr((*(indexes))[(*rows)-1], "/bin/find:") != NULL) { 
+			free((*indexes));
+			rt_value=0;
+		} else rt_value = 1;  
 
     	return rt_value;
 }
