@@ -13,6 +13,7 @@
 #include "logger.h"
 
 #include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
@@ -73,7 +74,7 @@ unitnos_process *unitnos_process_open(const char *path, char *const *argv) {
       }
       new_argv[i] = (char *)NULL;
     }
-    execvp(path, (char**)new_argv);
+    execvp(path, (char **)new_argv);
     log_error("Unable to execute child process: %s", strerror(errno));
     _exit(127);
   }
@@ -113,4 +114,21 @@ int unitnos_process_get_fd(unitnos_process *p, const char *mode) {
   } else {
     return p->pipe_out;
   }
+}
+
+static bool is_pipe_valid(char *pipe_fd) {
+  char *tmp;
+  long fd = strtol(pipe_fd, &tmp, 0);
+  if (tmp != pipe_fd && errno != ERANGE) {
+    return fileno(stdin) != fd && fileno(stdout) != fd &&
+      fcntl(fd, F_GETFD) != -1;
+  }
+  return false;
+}
+
+bool unitnos_process_is_process(int argc, char **argv) {
+  if (argc >= 3) {
+    return is_pipe_valid(argv[1]) && is_pipe_valid(argv[2]);
+  }
+  return false;
 }

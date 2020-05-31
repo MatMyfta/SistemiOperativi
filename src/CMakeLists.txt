@@ -1,4 +1,5 @@
 add_subdirectory(analyzer)
+add_subdirectory(main)
 
 add_library(common STATIC "")
 target_sources(common

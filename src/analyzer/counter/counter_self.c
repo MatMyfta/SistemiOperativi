@@ -2,41 +2,109 @@
 #include "counter.h"
 
 #define LOG_TAG "counter"
+#include "../../list.h"
 #include "../../logger.h"
+#include "../../protocol.h"
 
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <stdio.h>
+
+struct counter_state {
+  list *p_list;
+  unsigned int n;
+  unsigned int m;
+};
+
+static void set_n(struct counter_state *state) {
+  int p_cnt_diff = state->n - list_size(state->p_list);
+  unitnos_p *p;
+  if (p_cnt_diff > 0) {
+    log_debug("Creating %d \"p\"", p_cnt_diff);
+    // create new p
+    while (p_cnt_diff--) {
+      p = unitnos_p_create();
+      if (p != NULL) {
+        list_push_back(state->p_list, &p);
+        if (state->m != 0) {
+          unitnos_p_set_m(p, state->m);
+        }
+      }
+    }
+  } else if (p_cnt_diff < 0) {
+    log_debug("Destroying %d \"p\"", -p_cnt_diff);
+    unitnos_p **p;
+    // remove p
+    while (p_cnt_diff++) {
+      p = list_back(state->p_list);
+      unitnos_p_destroy(*p);
+      list_pop_back(state->p_list);
+    }
+  }
+}
+
+static void set_m(struct counter_state *state) {
+  list_node *node;
+  unitnos_p **p;
+  log_debug("Updating m of %d \"p\"", list_size(state->p_list));
+  list_for_each_data(p, unitnos_p *, node, state->p_list) {
+    unitnos_p_set_m(*p, state->m);
+  }
+}
+
+static void add_new_path(struct counter_state *state, const char *new_path) {
+  list_node *node;
+  unitnos_p **p;
+  list_for_each_data(p, unitnos_p *, node, state->p_list) {
+    unitnos_p_add_new_file(*p, new_path);
+  }
+}
 
 int unitnos_counter_self_main(int in_pipe, int output_pipe) {
   log_debug("Started");
 
-  char outbuf[64];
-  snprintf(outbuf, 64, "Hello World from %d", getpid());
-  write(output_pipe, outbuf, strlen(outbuf));
+  FILE *fin = fdopen(in_pipe, "r");
 
-  char buf[30] = {};
-  while (read(in_pipe, buf, 30) > 0) {
-    log_debug("Received %s from parent", buf);
+  struct counter_state state = {0};
+  state.p_list = list_create(sizeof(unitnos_p *));
+
+  char *message = NULL;
+  size_t message_size = 0;
+
+  while (1) {
+    if (getline(&message, &message_size, fin) >= 0) {
+      struct unitnos_protocol_command command = unitnos_protocol_parse(message);
+      log_verbose("Received command: %s", command.command);
+
+      if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_SET_N)) {
+        unsigned int n;
+        int ret = sscanf(command.value, "%u", &n);
+        assert(ret > 0);
+        log_verbose("Received n: %u", n);
+        state.n = n;
+        set_n(&state);
+      }
+
+      if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_SET_M)) {
+        unsigned int m;
+        int ret = sscanf(command.value, "%u", &m);
+        assert(ret > 0);
+        log_verbose("Received m: %u", m);
+        state.m = m;
+        set_m(&state);
+      }
+
+      if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_ADD_NEW_PATH)) {
+        log_verbose("Received path: %s", command.value);
+        add_new_path(&state, command.value);
+      }
+    } else if (feof(fin)) {
+      log_debug("Input pipe closed. Terminate");
+      break;
+    }
   }
 
-  unitnos_p *p_children[5];
-
-  int i;
-  for (i = 0; i < 5; ++i) {
-    p_children[i] = unitnos_p_create();
-  }
-
-  for (i = 0; i < 5; ++i) {
-    unitnos_p_set(p_children[i], 5, NULL);
-  }
-
-  for (i = 0; i < 5; ++i) {
-    unitnos_p_read(p_children[i]);
-  }
-
-  for (i = 0; i < 5; ++i) {
-    unitnos_p_destroy(p_children[i]);
-  }
   return 0;
 }
