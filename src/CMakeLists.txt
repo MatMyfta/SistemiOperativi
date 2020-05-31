@@ -7,4 +7,5 @@ target_sources(common
   logger.c
   utils.c
   protocol.c
+  list.c
   )
