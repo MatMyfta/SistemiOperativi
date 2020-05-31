@@ -6,6 +6,7 @@ target_link_libraries(p
   PRIVATE
   common
   p_api
+  q_api
   )
 
 add_library(p_api STATIC "")

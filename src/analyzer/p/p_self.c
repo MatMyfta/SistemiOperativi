@@ -1,3 +1,4 @@
+#include "../q/q.h"
 #include "p.h"
 
 #define LOG_TAG "p"
@@ -19,6 +20,17 @@ int unitnos_p_self_main(int in_pipe, int output_pipe) {
     log_debug("Received %s from parent", buf);
     break;
   }
+
+  unitnos_q *q_children[3];
+
+  int i;
+  for (i = 0; i < 3; ++i) {
+    q_children[i] = unitnos_q_create();
+  }
+
+  // MANCANO TUTTE LE FUNZIONI DI Q, L'INIZIALIZZAZIONE E' UNA PROVA
+
+  // Aggiunti gli include mancanti
 
   return 0;
 }
