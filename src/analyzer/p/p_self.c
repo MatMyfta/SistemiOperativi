@@ -42,9 +42,9 @@ static void set_m(struct p_state *state) {
 
 static void add_new_file(struct p_state *state, const char *new_path) {
   list_node *node;
-  unitnos_p **p;
-  list_for_each_data(p, unitnos_p *, node, state->q_list) {
-    unitnos_p_add_new_file(*p, new_path);
+  unitnos_q **q;
+  list_for_each_data(q, unitnos_q *, node, state->q_list) {
+    unitnos_q_add_new_file(*q, new_path);
   }
 }
 
