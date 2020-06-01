@@ -3,11 +3,21 @@
 <!-- vim-markdown-toc GFM -->
 
 * [Build](#build)
+  * [Makefile](#makefile)
+  * [CMake](#cmake)
 * [Link utili](#link-utili)
 
 <!-- vim-markdown-toc -->
 
 ## Build
+
+### Makefile
+
+```sh
+$ make build
+```
+
+### CMake
 
 ```sh
 $ mkdir build
