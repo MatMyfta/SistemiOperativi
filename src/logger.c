@@ -6,10 +6,9 @@
  * Inspired by https://github.com/armink/EasyLogger
  */
 #include "logger.h"
+#include "bool.h"
 
 #include <assert.h>
-#include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -82,7 +81,7 @@ const char *LEVEL2COLOR[] = {
 };
 
 static struct {
-  uint16_t formats[UNITNOS_LOGGER_LOG_LVL_TOTAL_LEVELS];
+  unsigned int formats[UNITNOS_LOGGER_LOG_LVL_TOTAL_LEVELS];
 } g_logger = {
     .formats =
         {
@@ -181,7 +180,7 @@ void unitnos_logger_log_end(char *log_string, size_t remaining_size,
   assert(LOG_LINE_LENGTH >= sizeof(CSI_END));
   assert(remaining_size >= 1);
 
-  uint32_t current_index = 0;
+  size_t current_index = 0;
   if (is_color_enabled(lvl)) {
     if ((sizeof(CSI_END) - 1) + 1 >= remaining_size) {
       /*

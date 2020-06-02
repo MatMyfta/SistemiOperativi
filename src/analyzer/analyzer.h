@@ -1,8 +1,6 @@
 #ifndef UNITNOS_ANALYZER_H_
 #define UNITNOS_ANALYZER_H_
 
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif

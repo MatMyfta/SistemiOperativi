@@ -30,7 +30,7 @@ void unitnos_p_destroy(unitnos_p *p) {
   free(p);
 }
 
-void unitnos_p_set_m(unitnos_p *p, uint16_t m) {
+void unitnos_p_set_m(unitnos_p *p, unsigned int m) {
   unitnos_procotol_send_command1(unitnos_process_get_fd(p->process, "w"),
                                  UNITNOS_P_COMMAND_SET_M, "%u", m);
 }

@@ -1,8 +1,6 @@
 #ifndef UNITNOS_COUNTER_H_
 #define UNITNOS_COUNTER_H_
 
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif

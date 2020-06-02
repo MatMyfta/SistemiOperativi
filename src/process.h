@@ -6,8 +6,9 @@
 #ifndef UNITNOS_PROCESS_H_
 #define UNITNOS_PROCESS_H_
 
+#include "bool.h"
+
 #include <stdio.h>
-#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {

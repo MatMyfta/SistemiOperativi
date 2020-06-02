@@ -1,8 +1,6 @@
 #ifndef UNITNOS_Q_H_
 #define UNITNOS_Q_H_
 
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
