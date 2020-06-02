@@ -8,7 +8,6 @@
 #include "logger.h"
 
 #include <assert.h>
-#include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -27,13 +26,22 @@ bool is_fmt_enabled(enum unitnos_logger_log_level lvl,
 char *get_time(void);
 char *get_pinfo(void);
 /**
- * Safe strncpy from index
+ * Safe Copy \p src to \dest
+ *
+ * \param [in] index index of the \p dest buffer from which this function
+ * starts to copy. At most `destsz - index` characters are copied.
+ * \param [in/out] dest destination buffer
+ * \param [in] destsz total length of the \p dest buffer
+ * \param [in] source string
  *
  * \returns copied length
  */
 size_t safe_strcpy_from(size_t index, char *dest, size_t destsz,
                         const char *src);
-size_t logbufcpy(size_t index, char *dest, const char *src);
+/**
+ * Wrapper of safe_strcpy_from
+ */
+size_t logbufcpy(size_t index, char *log_line, const char *src);
 
 /*******************************************************************************
  * Private variable & constants
@@ -92,123 +100,104 @@ static struct {
         },
 };
 
-void unitnos_logger_log(enum unitnos_logger_log_level lvl, const char *tag,
-                        const char *file, const char *func, const long line,
-                        const char *format, ...) {
-  static char g_log_buffer[LOG_LINE_LENGTH];
+static char g_log_buffer[LOG_LINE_LENGTH];
+size_t unitnos_logger_log_start(char **log_string,
+                                enum unitnos_logger_log_level lvl,
+                                const char *tag, const char *file,
+                                const char *func, long line) {
 
   size_t current_index = 0;
 
   /* package color */
   if (is_color_enabled(lvl)) {
-    current_index +=
-        logbufcpy(current_index, g_log_buffer + current_index, CSI_START);
-    current_index += logbufcpy(current_index, g_log_buffer + current_index,
-                               LEVEL2COLOR[lvl]);
+    current_index += logbufcpy(current_index, g_log_buffer, CSI_START);
+    current_index += logbufcpy(current_index, g_log_buffer, LEVEL2COLOR[lvl]);
   }
 
   /* package level info */
   if (is_fmt_enabled(lvl, UNITNOS_LOGGER_LOG_FMT_LVL)) {
-    current_index +=
-        logbufcpy(current_index, g_log_buffer + current_index, LEVEL2TEXT[lvl]);
-    current_index +=
-        logbufcpy(current_index, g_log_buffer + current_index, "/");
+    current_index += logbufcpy(current_index, g_log_buffer, LEVEL2TEXT[lvl]);
+    current_index += logbufcpy(current_index, g_log_buffer, "/");
   }
 
   /* package tag info */
   if (is_fmt_enabled(lvl, UNITNOS_LOGGER_LOG_FMT_TAG)) {
-    current_index +=
-        logbufcpy(current_index, g_log_buffer + current_index, tag);
-    current_index +=
-        logbufcpy(current_index, g_log_buffer + current_index, " ");
+    current_index += logbufcpy(current_index, g_log_buffer, tag);
+    current_index += logbufcpy(current_index, g_log_buffer, " ");
   }
 
   /* package time and process info */
   if (is_fmt_enabled(lvl, UNITNOS_LOGGER_LOG_FMT_TIME |
                               UNITNOS_LOGGER_LOG_FMT_PROCESS_INFO)) {
-    current_index +=
-        logbufcpy(current_index, g_log_buffer + current_index, "[");
+    current_index += logbufcpy(current_index, g_log_buffer, "[");
     /* package time info */
     if (is_fmt_enabled(lvl, UNITNOS_LOGGER_LOG_FMT_TIME)) {
-      current_index +=
-          logbufcpy(current_index, g_log_buffer + current_index, get_time());
+      current_index += logbufcpy(current_index, g_log_buffer, get_time());
       if (is_fmt_enabled(lvl, UNITNOS_LOGGER_LOG_FMT_PROCESS_INFO)) {
-        current_index +=
-            logbufcpy(current_index, g_log_buffer + current_index, "; ");
+        current_index += logbufcpy(current_index, g_log_buffer, "; ");
       }
     }
     if (is_fmt_enabled(lvl, UNITNOS_LOGGER_LOG_FMT_PROCESS_INFO)) {
-      current_index +=
-          logbufcpy(current_index, g_log_buffer + current_index, get_pinfo());
+      current_index += logbufcpy(current_index, g_log_buffer, get_pinfo());
     }
-    current_index +=
-        logbufcpy(current_index, g_log_buffer + current_index, "] ");
+    current_index += logbufcpy(current_index, g_log_buffer, "] ");
   }
 
   /* package file directory and name, function name and line number info */
   if (is_fmt_enabled(lvl, UNITNOS_LOGGER_LOG_FMT_FILE |
                               UNITNOS_LOGGER_LOG_FMT_FUNC |
                               UNITNOS_LOGGER_LOG_FMT_LINE)) {
-    current_index +=
-        logbufcpy(current_index, g_log_buffer + current_index, "(");
+    current_index += logbufcpy(current_index, g_log_buffer, "(");
     /* package file info */
     if (is_fmt_enabled(lvl, UNITNOS_LOGGER_LOG_FMT_FILE)) {
-      current_index +=
-          logbufcpy(current_index, g_log_buffer + current_index, file);
+      current_index += logbufcpy(current_index, g_log_buffer, file);
       if (is_fmt_enabled(lvl, UNITNOS_LOGGER_LOG_FMT_FUNC)) {
-        current_index +=
-            logbufcpy(current_index, g_log_buffer + current_index, " ");
+        current_index += logbufcpy(current_index, g_log_buffer, " ");
       } else if (is_fmt_enabled(lvl, UNITNOS_LOGGER_LOG_FMT_LINE)) {
-        current_index +=
-            logbufcpy(current_index, g_log_buffer + current_index, ":");
+        current_index += logbufcpy(current_index, g_log_buffer, ":");
       }
     }
     /* package func info */
     if (is_fmt_enabled(lvl, UNITNOS_LOGGER_LOG_FMT_FUNC)) {
-      current_index +=
-          logbufcpy(current_index, g_log_buffer + current_index, func);
+      current_index += logbufcpy(current_index, g_log_buffer, func);
       if (is_fmt_enabled(lvl, UNITNOS_LOGGER_LOG_FMT_LINE)) {
-        current_index +=
-            logbufcpy(current_index, g_log_buffer + current_index, ":");
+        current_index += logbufcpy(current_index, g_log_buffer, ":");
       }
     }
     /* package line info */
     if (is_fmt_enabled(lvl, UNITNOS_LOGGER_LOG_FMT_LINE)) {
       char line_num[LOG_MAX_SOURCE_FILE_LINE_DIGITS + 1] = {0};
       snprintf(line_num, LOG_MAX_SOURCE_FILE_LINE_DIGITS, "%ld", line);
-      current_index +=
-          logbufcpy(current_index, g_log_buffer + current_index, line_num);
+      current_index += logbufcpy(current_index, g_log_buffer, line_num);
     }
-    current_index +=
-        logbufcpy(current_index, g_log_buffer + current_index, ")");
+    current_index += logbufcpy(current_index, g_log_buffer, ")");
   }
+  *log_string = g_log_buffer + current_index;
+  return LOG_LINE_LENGTH - current_index;
+}
 
-  va_list args;
-  va_start(args, format);
-  /* package other log data to buffer. '\0' must be added in the end by
-   * vsnprintf. */
-  int potentially_written =
-      vsnprintf(g_log_buffer + current_index, LOG_LINE_LENGTH - current_index,
-                format, args);
-  va_end(args);
+void unitnos_logger_log_end(char *log_string, size_t remaining_size,
+                            enum unitnos_logger_log_level lvl) {
+  assert(LOG_LINE_LENGTH >= sizeof(CSI_END));
+  assert(remaining_size >= 1);
 
+  uint32_t current_index = 0;
   if (is_color_enabled(lvl)) {
-    if (current_index + potentially_written + (sizeof(CSI_END) - 1) + 1 <=
-        LOG_LINE_LENGTH) {
-      current_index += potentially_written;
-    } else {
-      current_index = LOG_LINE_LENGTH - ((sizeof(CSI_END) - 1) + 1);
+    if ((sizeof(CSI_END) - 1) + 1 >= remaining_size) {
+      /*
+       * Not enough size to put color section close delimiter + '\0'.
+       * Overwrite message and close anyway.
+       */
+      size_t diff = ((sizeof(CSI_END) - 1) + 1) - remaining_size;
+      remaining_size += diff;
+      log_string -= diff;
     }
     current_index +=
-        logbufcpy(current_index, g_log_buffer + current_index, CSI_END);
-  } else {
-    if (current_index + potentially_written < LOG_LINE_LENGTH) {
-      current_index += potentially_written;
-    } else {
-      current_index = LOG_LINE_LENGTH - 1;
-    }
+        safe_strcpy_from(current_index, log_string, remaining_size, CSI_END);
   }
-  g_log_buffer[current_index] = '\0';
+
+  assert(remaining_size - current_index >= 1);
+  log_string[current_index] = '\0';
 
   // Finally, print
   if (lvl > UNITNOS_LOGGER_LOG_LVL_INFO) {
@@ -239,8 +228,8 @@ size_t safe_strcpy_from(size_t index, char *dest, size_t destsz,
   const char *src_old = src;
   while (*src != '\0') {
     /* make sure destination has enough space */
-    if (index++ < destsz) {
-      *dest++ = *src++;
+    if (index < destsz) {
+      *(dest + (index++)) = *src++;
     } else {
       break;
     }
@@ -248,8 +237,8 @@ size_t safe_strcpy_from(size_t index, char *dest, size_t destsz,
   return src - src_old;
 }
 
-size_t logbufcpy(size_t index, char *dest, const char *src) {
-  return safe_strcpy_from(index, dest, LOG_LINE_LENGTH, src);
+size_t logbufcpy(size_t index, char *log_line, const char *src) {
+  return safe_strcpy_from(index, log_line, LOG_LINE_LENGTH, src);
 }
 
 char *get_time(void) {

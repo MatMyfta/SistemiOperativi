@@ -48,7 +48,7 @@ static void set_n(struct counter_state *state) {
 static void set_m(struct counter_state *state) {
   list_node *node;
   unitnos_p **p;
-  log_debug("Updating m of %d \"p\"", list_size(state->p_list));
+  log_debug("Updating m of %lu \"p\"", list_size(state->p_list));
   list_for_each_data(p, unitnos_p *, node, state->p_list) {
     unitnos_p_set_m(*p, state->m);
   }
