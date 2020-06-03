@@ -100,6 +100,9 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
         log_verbose("Received path: %s", command.value);
         add_new_path(&state, command.value);
       }
+      if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_LIST_PATHS)) {
+        // TODO procedura list paths.. on working
+      }
     } else if (feof(fin)) {
       log_debug("Input pipe closed. Terminate");
       break;

@@ -47,6 +47,10 @@ void unitnos_counter_add_new_path(unitnos_counter *counter, const char *path) {
                                  UNITNOS_COUNTER_COMMAND_ADD_NEW_PATH, "%s",
                                  path);
 }
+void unitnos_counter_list_paths(unitnos_counter *counter) {
+  unitnos_procotol_send_command(unitnos_process_get_fd(counter->process, "w"),
+                                 UNITNOS_COUNTER_COMMAND_LIST_PATHS);
+}
 
 void unitnos_counter_process(unitnos_counter *counter) {
   char *message = NULL;

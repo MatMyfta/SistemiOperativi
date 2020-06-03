@@ -36,18 +36,21 @@ void unitnos_analyzer_delete(unitnos_analyzer *analyzer) {
 
 void unitnos_analyzer_set_n(unitnos_analyzer *analyzer, unsigned int n) {
   unitnos_procotol_send_command1(unitnos_process_get_fd(analyzer->process, "w"),
-                                 "set_n", "%u", n);
+                                 UNITNOS_ANALYZER_COMMAND_SET_N, "%u", n);
 }
 void unitnos_analyzer_set_m(unitnos_analyzer *analyzer, unsigned int m) {
   unitnos_procotol_send_command1(unitnos_process_get_fd(analyzer->process, "w"),
-                                 "set_m", "%u", m);
+                                 UNITNOS_ANALYZER_COMMAND_SET_M, "%u", m);
 }
 void unitnos_analyzer_add_new_path(unitnos_analyzer *analyzer,
                                    const char *path) {
   unitnos_procotol_send_command1(unitnos_process_get_fd(analyzer->process, "w"),
-                                 "add_new_path", "%s", path);
+                                 UNITNOS_ANALYZER_COMMAND_ADD_NEW_PATH, "%s", path);
 }
-
+void unitnos_analyzer_list_paths(unitnos_analyzer *analyzer) {
+  unitnos_procotol_send_command(unitnos_process_get_fd(analyzer->process, "w"),
+                                 UNITNOS_ANALYZER_COMMAND_LIST_PATHS);
+}
 void unitnos_analyzer_process(unitnos_analyzer *analyzer) {
   char *message = NULL;
   size_t message_size = 0;

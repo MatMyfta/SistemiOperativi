@@ -69,6 +69,7 @@ static int child_analyzer_main(int in_pipe, int output_pipe) {
   while (1) {
     if (getline(&message, &message_size, fin) >= 0) {
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);
+      log_verbose("Received command: %s", command.command);
 
       if (!strcmp(command.command, UNITNOS_ANALYZER_COMMAND_SET_N)) {
         unsigned int n;
@@ -86,6 +87,10 @@ static int child_analyzer_main(int in_pipe, int output_pipe) {
 
       if (!strcmp(command.command, UNITNOS_ANALYZER_COMMAND_ADD_NEW_PATH)) {
         unitnos_counter_add_new_path(counter, command.value);
+      }
+
+      if (!strcmp(command.command, UNITNOS_ANALYZER_COMMAND_LIST_PATHS)) {
+        unitnos_counter_list_paths(counter);
       }
     } else if (feof(fin)) {
       log_debug("Input pipe closed. Terminate");

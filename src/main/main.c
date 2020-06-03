@@ -171,7 +171,14 @@ static int add_new_path_command(int argc, const char *argv[]) {
   unitnos_analyzer_add_new_path(g_analyzer, argv[1]);
   return 0;
 }
-static int list_paths_command(int argc, const char *argv[]) {}
+static int list_paths_command(int argc, const char *argv[]) {
+  if (argc !=  1) {
+    log_error("Usage: list_paths");
+    return -1;
+  }
+  unitnos_analyzer_list_paths(g_analyzer);
+  return 0;
+}
 static int set_n_command(int argc, const char *argv[]) {
   if (argc != 2) {
     log_error("Usage: set_n <n>");
