@@ -13,26 +13,8 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct unitnos_node {
-  void *value;
-  struct unitnos_node *parent;
-  struct unitnos_node *left;
-  struct unitnos_node *right;
-} unitnos_node;
-
-typedef struct unitnos_tree {
-  unitnos_node *root;
-  int size;
-  /**
-   * compare deve restituire 1 se v2 è maggiore, 0 se uguale o -1 se è minore
-   */
-  int (*compare)(void *v1, void *v2);
-  /**
-   * ciascun tipo ha una funzione propria per la liberazione della memoria deve
-   * restituire 1 se va a buon fine, 0 altrimenti
-   */
-  int (*free_mem)(void *value);
-} unitnos_tree;
+typedef struct unitnos_tree unitnos_tree;
+typedef struct unitnos_node unitnos_node;
 
 /**
  * Restituisce un nuovo albero
