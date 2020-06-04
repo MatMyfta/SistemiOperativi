@@ -1,24 +1,6 @@
 #include "tree.h"
 
-struct unitnos_node {
-	void* value;
-	unitnos_node* parent;
-	unitnos_node* left;
-	unitnos_node* right;
-};
-
-struct unitnos_tree {
-	unitnos_node* root;
-	int size;
-
-	// compare deve restituire 1 se v2 è maggiore, 0 se uguale o -1 se è minore
-	void ( *compare )( void *v1, void *v2 );
-	// ciascun tipo ha una funzione propria per la liberazione della memoria
-	// deve restituire 1 se va a buon fine, 0 altrimenti
-	int( *free_mem )( void *value );
-};
-
-unitnos_tree* unitnos_tree_create( void ( *compare )( void *v1, void *v2 )
+unitnos_tree* unitnos_tree_create(	int ( *compare )( void *v1, void *v2 ),
 									int ( *free_mem )( void *value ) ) {
 	unitnos_tree* tree = ( unitnos_tree* ) malloc( sizeof( unitnos_tree ) );
 	tree->size = 0;
@@ -27,25 +9,25 @@ unitnos_tree* unitnos_tree_create( void ( *compare )( void *v1, void *v2 )
 	return tree;
 }
 
-static void unitnos_tree_add_node_wrap( unitnos_node *node, unitnos_tree_add_node *tmp ) {
+static void unitnos_tree_add_node_wrap( unitnos_tree *tree, unitnos_node *node, unitnos_node *tmp ) {
 	if ( node == NULL )
 		node = tmp;
 	else {
 		tmp->parent = node;
-		if ( tree.compare( node, node_tmp ) > 0 )
-			unitnos_tree_add_node_wrap ( node->right, tmp );
+		if ( tree->compare( node, tmp ) > 0 )
+			unitnos_tree_add_node_wrap ( tree, node->right, tmp );
 		else
-			unitnos_tree_add_node_wrap ( node->left, tmp );
+			unitnos_tree_add_node_wrap ( tree, node->left, tmp );
 	}
 }
 void unitnos_tree_add_node( unitnos_tree *tree, void *value ) {
-	unitnos_node node_tmp;
+	unitnos_node *node_tmp;
 	node_tmp->value = value;
 	node_tmp->left = NULL;
 	node_tmp->right = NULL;
 	node_tmp->parent = NULL;
 
-	unitnos_tree_add_node_wrap ( tree->root, node_tmp );
+	unitnos_tree_add_node_wrap ( tree, tree->root, node_tmp );
 }
 
 static unitnos_node* unitnos_tree_search_wrap( unitnos_tree *tree, unitnos_node *node, void *value ) {
@@ -80,7 +62,7 @@ static unitnos_node* unitnos_node_successor( unitnos_tree *tree, unitnos_node *n
 	return tmp;
 }
 
-static void unitnos_tree_link( unitnos_tree *tree, unitnos_node *node, unitnos_node *u, ) {
+static void unitnos_tree_link( unitnos_tree *tree, unitnos_node *node, unitnos_node *u ) {
 	if ( u != NULL )
 		u->parent = node;
 	if ( node != NULL ) {
@@ -91,7 +73,7 @@ static void unitnos_tree_link( unitnos_tree *tree, unitnos_node *node, unitnos_n
 	}
 }
 
-static int unitnos_node_free( unitnos_tree *tree, unitnos_node *node ) {
+static void unitnos_node_free( unitnos_tree *tree, unitnos_node *node ) {
 	tree->free_mem( node->value );
 	free ( node );
 }
@@ -104,7 +86,7 @@ void unitnos_tree_remove( unitnos_tree *tree, void *value ) {
 		if ( tmp->left == NULL && tmp->right == NULL ) {
 			// caso 1: il nodo è una foglia
 			unitnos_tree_link( tree, tmp->parent, NULL );
-			unitnos_node_free( tmp );
+			unitnos_node_free( tree, tmp );
 		} else if ( tmp->left != NULL && tmp->right == NULL ) {
 			// caso 2: c'è solo il figlio destro
 			unitnos_tree_link( tree, tmp->parent, tmp->left );
@@ -120,16 +102,16 @@ void unitnos_tree_remove( unitnos_tree *tree, void *value ) {
 			unitnos_node* successor = unitnos_node_successor( tree, tmp );
 			unitnos_tree_link( tree, successor->parent, successor->right );
 			tmp->value = successor->value;
-			unitnos_node_free( successor );
+			unitnos_node_free( tree, successor );
 		}
 	}
 }
 
 void unitnos_tree_destroy( unitnos_tree *tree, unitnos_node *node ) {
 	if ( node != NULL ) {
-		unitnos_tree_destroy ( node->left );
-		unitnos_tree_destroy ( node->right );
-		unitnos_node_free( node )
+		unitnos_tree_destroy ( tree, node->left );
+		unitnos_tree_destroy ( tree, node->right );
+		unitnos_node_free( tree, node );
 	}
 }
 void unitnos_tree_destroy_all( unitnos_tree *tree ) {
