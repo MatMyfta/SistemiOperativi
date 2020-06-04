@@ -9,4 +9,5 @@ target_sources(common
   utils.c
   protocol.c
   list.c
+  tree.c
   )
