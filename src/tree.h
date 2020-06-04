@@ -1,3 +1,10 @@
+#ifndef UNITNOS_TREE_H_
+#define UNITNOS_TREE_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -48,3 +55,9 @@ void unitnos_tree_remove( unitnos_tree *tree, void *value );
 */
 void unitnos_tree_destroy( unitnos_tree *tree, unitnos_node *node );
 void unitnos_tree_destroy_all( unitnos_tree *tree );
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* ifndef UNITNOS_TREE_H_ */
