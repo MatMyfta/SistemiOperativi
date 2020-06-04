@@ -1,3 +1,5 @@
+#include "tree.h"
+
 struct unitnos_node {
 	void* value;
 	unitnos_node* parent;
