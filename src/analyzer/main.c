@@ -66,6 +66,7 @@ static int child_analyzer_main(int in_pipe, int output_pipe) {
   char *message = NULL;
   size_t message_size = 0;
 
+  
   while (1) {
     if (getline(&message, &message_size, fin) >= 0) {
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);

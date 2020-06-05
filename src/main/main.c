@@ -31,22 +31,22 @@ struct command g_commands[] = {
         .function = help_command,
     },
     {
-        .name = "add_new_path",
+        .name = UNITNOS_ANALYZER_COMMAND_ADD_NEW_PATH,
         .help = "Add another path to analyze. Usage: add_new_path <path>",
         .function = add_new_path_command,
     },
     {
-        .name = "list_paths",
+        .name = UNITNOS_ANALYZER_COMMAND_LIST_PATHS,
         .help = "Add another path to analyze. Usage: list_paths",
         .function = list_paths_command,
     },
     {
-        .name = "set_n",
+        .name = UNITNOS_ANALYZER_COMMAND_SET_N,
         .help = "Update number of process \"p\". Usage set_n <n>",
         .function = set_n_command,
     },
     {
-        .name = "set_m",
+        .name = UNITNOS_ANALYZER_COMMAND_SET_M,
         .help = "Update number of process \"q\" for each process \"p\". Usage: set_m <m>",
         .function = set_m_command,
     },

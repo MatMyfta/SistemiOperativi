@@ -28,7 +28,7 @@ int fill_path_node (unitnos_path_node* node, char* path) {
 	return return_value;
 }
 
-void remove_node (unitnos_path_node* node) {
+void remove_node (unitnos_path_node* node) {		
 	int i;
 	node->rows=0;
 	free(node->index);
@@ -53,6 +53,7 @@ int compare (unitnos_path_node* node1, unitnos_path_node* node2) {
 		return_value=1;
 	return return_value;
 }
+
 
 // PROVA MAIN
 int main(int argc, char *argv[]) {
