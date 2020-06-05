@@ -4,11 +4,7 @@
 #include <unistd.h>
 #include <limits.h>
 
-typedef struct unitnos_path_node {
-  char *name;
-  char (*index)[PATH_MAX];
-  int rows;
-} unitnos_path_node;
+typedef struct unitnos_path_node unitnos_path_node;
 
 /*
  * Restituisce un nuovo nodo, se fallisce la creazione restituisce NULL
