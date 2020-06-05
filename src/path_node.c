@@ -1,5 +1,11 @@
 #include "path_node.h"
 
+struct unitnos_path_node {
+  char *name;
+  char (*index)[PATH_MAX];
+  int rows;
+};
+
 unitnos_path_node* create_path_node () {
 	return malloc(sizeof(unitnos_path_node));
 }
@@ -40,7 +46,12 @@ void print_node (unitnos_path_node* node) {
 }
 
 int compare (unitnos_path_node* node1, unitnos_path_node* node2) {
-	return strcmp(node1->name, node2->name);
+	int return_value= strcmp(node1->name, node2->name);
+	if (return_value>0)
+		return_value=1;
+	else if (return_value<0)
+		return_value=1;
+	return return_value;
 }
 
 // PROVA MAIN
