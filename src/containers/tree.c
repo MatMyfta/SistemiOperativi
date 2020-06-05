@@ -3,22 +3,15 @@
  *
  * \brief Generic BST - implementation
  */
-#include "tree.h"
-#include "path_node.h"
 
+#include "tree.h"
 
 struct unitnos_tree {
   unitnos_node *root;
   int size;
-  /**
-   * compare deve restituire 1 se v2 è maggiore, 0 se uguale o -1 se è minore
-   */
-  int (*compare)(void *v1, void *v2);
-  /**
-   * ciascun tipo ha una funzione propria per la liberazione della memoria deve
-   * restituire 1 se va a buon fine, 0 altrimenti
-   */
-  int (*remove_node)(void *value);
+  unitnos_compare_func compare_func;
+  unitnos_destroy_nodify value_destroy_func;
+  void *user_data;
 };
 
 struct unitnos_node {
@@ -28,12 +21,14 @@ struct unitnos_node {
   struct unitnos_node *right;
 };
 
-unitnos_tree *unitnos_tree_create(int (*compare)(void *v1, void *v2),
-                                  int (*remove_node)(void *value)) {
+unitnos_tree *unitnos_tree_create(unitnos_compare_func compare_func,
+                                  unitnos_destroy_nodify value_destroy_func,
+                                  void *user_data) {
   unitnos_tree *tree = (unitnos_tree *)malloc(sizeof(unitnos_tree));
   tree->size = 0;
-  tree->compare = compare;
-  tree->remove_node = remove_node;
+  tree->compare_func = compare_func;
+  tree->value_destroy_func = value_destroy_func;
+  tree->user_data = user_data;
   return tree;
 }
 
@@ -41,9 +36,9 @@ static void unitnos_tree_add_node_wrap(unitnos_tree *tree, unitnos_node *node,
                                        unitnos_node *tmp) {
   if (node == NULL)
     node = tmp;
-  else {  // BISOGNEREBBE ANCHE AUMENTARE LA DIMENSIONE DELL'ALBERO SIZE
+  else { // BISOGNEREBBE ANCHE AUMENTARE LA DIMENSIONE DELL'ALBERO SIZE
     tmp->parent = node;
-    if (tree->compare(node, tmp) > 0)
+    if (tree->compare_func(node, tmp, tree->user_data) > 0)
       unitnos_tree_add_node_wrap(tree, node->right, tmp);
     else
       unitnos_tree_add_node_wrap(tree, node->left, tmp);
@@ -61,9 +56,10 @@ void unitnos_tree_add_node(unitnos_tree *tree, void *value) {
 
 static unitnos_node *unitnos_tree_search_wrap(unitnos_tree *tree,
                                               unitnos_node *node, void *value) {
-  if (tree->compare(node->value, value) == 0 || node == NULL)
+  if (tree->compare_func(node->value, value, tree->user_data) == 0 ||
+      node == NULL)
     return node;
-  if (tree->compare(node->value, value) > 0)
+  if (tree->compare_func(node->value, value, tree->user_data) > 0)
     return unitnos_tree_search_wrap(tree, node->right, value);
   return unitnos_tree_search_wrap(tree, node->left, value);
 }
@@ -98,7 +94,7 @@ static void unitnos_tree_link(unitnos_tree *tree, unitnos_node *node,
   if (u != NULL)
     u->parent = node;
   if (node != NULL) {
-    if (tree->compare(node, u) < 0)
+    if (tree->compare_func(node, u, tree->user_data) < 0)
       node->left = u;
     else
       node->right = u;
@@ -106,7 +102,7 @@ static void unitnos_tree_link(unitnos_tree *tree, unitnos_node *node,
 }
 
 static void unitnos_node_free(unitnos_tree *tree, unitnos_node *node) {
-  tree->remove_node(node->value);
+  tree->value_destroy_func(node->value, tree->user_data);
   free(node);
 }
 
