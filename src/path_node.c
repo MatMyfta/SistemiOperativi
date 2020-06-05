@@ -11,21 +11,21 @@ unitnos_path_node* create_path_node () {
 }
 
 int fill_path_node (unitnos_path_node* node, char* path) {
-	int return_value = 0;
+	int ret_value = 0;
 	if (node!=NULL) {
-		if (node->name = malloc(strlen(path)+1)) {
+		if ((node->name = malloc(strlen(path)+1))) {
 			strcpy(node->name, path);
 			node->rows=0;
-			if (node->index = malloc (((node->rows)+1)*sizeof(node->index))) {
-				if (!validate(node->name, &node->index, &node->rows))	// quando arrivo qui ho allocato tutto ciò che mi serve e posso provare a convertire i path
-					return_value = 1;
-			} else
-				return_value = 1;
+			node->index=NULL;
+			//if ((node->index = malloc (((node->rows)+1)*sizeof(node->index)))) {
+			ret_value=validate(node->name, &node->index, &node->rows);
+			//} else
+				//return_value = 1;
 		} else
-			return_value = 1; 
+			ret_value = 0; 
 	} else
-		return_value = 1;
-	return return_value;
+		ret_value = 0;
+	return ret_value;
 }
 
 void remove_node (unitnos_path_node* node) {		
@@ -56,6 +56,7 @@ int compare (unitnos_path_node* node1, unitnos_path_node* node2) {
 
 
 // PROVA MAIN
+/*
 int main(int argc, char *argv[]) {
 	if (argc != 2) {
 		printf("usage: execname <path>");
@@ -64,24 +65,31 @@ int main(int argc, char *argv[]) {
 		unitnos_path_node* nodo = create_path_node();
 		char* path = malloc(PATH_MAX * sizeof(char));
 		strcpy(path, argv[1]);
-		fill_path_node(nodo, path);
-		print_node(nodo);
-		remove_node(nodo);
-		free(path);
+		if(fill_path_node(nodo, path)){
+			print_node(nodo);
+			remove_node(nodo);
+		}
+		else{
+			printf("error\n");
+			free(nodo);
+		}
+
+
+		//free(path);
 	}
 }
-
+*/
 int validate(char *path, char (*(*indexes))[PATH_MAX], int *rows) { 
 	FILE *fp; 
 	int rt_value=0;
-	*rows=1;
+	//(*rows)=0;
 	
 	/*
 	* In docker il comando find si trova in /usr/bin/find invece che in /bin/find
     * Comportamenti analoghi e controllati per entrambi gli ambienti.
 	*/
 
-	char *command = concat("/usr/bin/find ", path); // Not able to intercept stderr
+	char *command = concat("/bin/find ", path); // Not able to intercept stderr
 	command = concat(command," -type f 2>&1"); //   stderr goes on stdout
 	fp = popen(command, "r"); 
 	free(command);
@@ -90,6 +98,13 @@ int validate(char *path, char (*(*indexes))[PATH_MAX], int *rows) {
         	printf("Failed to run command\n" );
         	exit(-1);
     	}	
+
+    if (!((*indexes) = malloc (((*rows)+1)*sizeof **indexes))) { 
+        	printf("Out of memory\n" );
+        	exit(-1);
+    	} else (*rows)=1;
+
+
 	while (fgets ((*(indexes))[(*rows)-1], PATH_MAX, fp)) {	  
         char *p = (*(indexes))[(*rows)-1];                  
         while(*p != '\n')

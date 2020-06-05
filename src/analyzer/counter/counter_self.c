@@ -74,20 +74,6 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
   state.p_list = list_create(sizeof(unitnos_p *));
   state.paths = unitnos_tree_create((*compare),(*remove_node));
 
-
-  //////////////////////////////////////
-  /*
-  unitnos_tree *main_tree = unitnos_tree_create((*compare),(*remove_node));
-  unitnos_path_node *tmp = create_path_node();
-  fill_path_node(tmp,argv[1]);
-  //unitnos_tree_add_node(main_tree,tmp); //-> value!!!!!
-
-
-  //unitnos_tree_destroy_all(&main_tree);
-  fill_path_node(tmp,argv[1]);
-  */
-  //////////////////////////////////////////////
-
   char *message = NULL;
   size_t message_size = 0;
 
@@ -114,16 +100,35 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
         set_m(&state);
       }
 
+
+      /* Persistono errori riguardo l'aggiunta consecutiva di più path.
+         Il comportamento è strano: command_value del secondo comando di add_new_path rimane del valore della precedente chiamata.
+         Viene inoltre stampato, ma non risulta esserci alcuna funzione di stampa.
+      */
+      
       if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_ADD_NEW_PATH)) {
         log_verbose("Received path: %s", command.value);
-        /*unitnos_path_node *tmp = create_path_node();
-        fill_path_node(tmp,command.value);
-        unitnos_tree_add_node(state.paths,tmp); //-> value!!!!!
-        free(tmp);
-        */
-        add_new_path(&state, command.value);
+        unitnos_path_node* tmp = create_path_node();
+
+        if(fill_path_node(tmp, command.value)){
+          //print_node(tmp);
+          ////remove_node(tmp);
+          unitnos_tree_add_node(state.paths,tmp);
+          add_new_path(&state, command.value);  // not sure
+        }
+        else{
+          log_error("<path> not valid");  
+          free(tmp);
+        }
+        
       }
+
       if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_LIST_PATHS)) {
+
+        /*
+        Temporaneamente stampo solo la lunghezza della lista di tutti i path
+        */
+        printf("%lu\n",list_size(state.p_list));
         // TODO procedura list paths.. on working
       }
     } else if (feof(fin)) {

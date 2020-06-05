@@ -167,6 +167,7 @@ static int help_command(int argc, const char *argv[]) {
 static int add_new_path_command(int argc, const char *argv[]) {
   if (argc != 2) {
     log_error("Usage: add_new_path <path>");
+    return -1;
   }
   unitnos_analyzer_add_new_path(g_analyzer, argv[1]);
   return 0;

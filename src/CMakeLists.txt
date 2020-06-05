@@ -10,4 +10,5 @@ target_sources(common
   protocol.c
   list.c
   tree.c
+  path_node.c
   )
