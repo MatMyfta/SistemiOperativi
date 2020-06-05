@@ -115,6 +115,7 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
           ////remove_node(tmp);
           unitnos_tree_add_node(state.paths,tmp);
           add_new_path(&state, command.value);  // not sure
+          //free(tmp); ---> ?????
         }
         else{
           log_error("<path> not valid");  
