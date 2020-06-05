@@ -5,6 +5,8 @@
 #include "../../list.h"
 #include "../../logger.h"
 #include "../../protocol.h"
+#include "../../tree.h"
+#include "../../path_node.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -16,6 +18,7 @@ struct counter_state {
   list *p_list;
   unsigned int n;
   unsigned int m;
+  unitnos_tree *paths;
 };
 
 static void set_n(struct counter_state *state) {
@@ -69,6 +72,21 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
 
   struct counter_state state = {0};
   state.p_list = list_create(sizeof(unitnos_p *));
+  state.paths = unitnos_tree_create((*compare),(*remove_node));
+
+
+  //////////////////////////////////////
+  /*
+  unitnos_tree *main_tree = unitnos_tree_create((*compare),(*remove_node));
+  unitnos_path_node *tmp = create_path_node();
+  fill_path_node(tmp,argv[1]);
+  //unitnos_tree_add_node(main_tree,tmp); //-> value!!!!!
+
+
+  //unitnos_tree_destroy_all(&main_tree);
+  fill_path_node(tmp,argv[1]);
+  */
+  //////////////////////////////////////////////
 
   char *message = NULL;
   size_t message_size = 0;
@@ -98,6 +116,11 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
 
       if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_ADD_NEW_PATH)) {
         log_verbose("Received path: %s", command.value);
+        /*unitnos_path_node *tmp = create_path_node();
+        fill_path_node(tmp,command.value);
+        unitnos_tree_add_node(state.paths,tmp); //-> value!!!!!
+        free(tmp);
+        */
         add_new_path(&state, command.value);
       }
       if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_LIST_PATHS)) {

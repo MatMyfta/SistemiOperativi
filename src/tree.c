@@ -4,6 +4,8 @@
  * \brief Generic BST - implementation
  */
 #include "tree.h"
+#include "path_node.h"
+
 
 struct unitnos_tree {
   unitnos_node *root;
@@ -16,7 +18,7 @@ struct unitnos_tree {
    * ciascun tipo ha una funzione propria per la liberazione della memoria deve
    * restituire 1 se va a buon fine, 0 altrimenti
    */
-  int (*free_mem)(void *value);
+  int (*remove_node)(void *value);
 };
 
 struct unitnos_node {
@@ -27,11 +29,11 @@ struct unitnos_node {
 };
 
 unitnos_tree *unitnos_tree_create(int (*compare)(void *v1, void *v2),
-                                  int (*free_mem)(void *value)) {
+                                  int (*remove_node)(void *value)) {
   unitnos_tree *tree = (unitnos_tree *)malloc(sizeof(unitnos_tree));
   tree->size = 0;
   tree->compare = compare;
-  tree->free_mem = free_mem;
+  tree->remove_node = remove_node;
   return tree;
 }
 
@@ -39,7 +41,7 @@ static void unitnos_tree_add_node_wrap(unitnos_tree *tree, unitnos_node *node,
                                        unitnos_node *tmp) {
   if (node == NULL)
     node = tmp;
-  else {
+  else {  // BISOGNEREBBE ANCHE AUMENTARE LA DIMENSIONE DELL'ALBERO SIZE
     tmp->parent = node;
     if (tree->compare(node, tmp) > 0)
       unitnos_tree_add_node_wrap(tree, node->right, tmp);
@@ -104,7 +106,7 @@ static void unitnos_tree_link(unitnos_tree *tree, unitnos_node *node,
 }
 
 static void unitnos_node_free(unitnos_tree *tree, unitnos_node *node) {
-  tree->free_mem(node->value);
+  tree->remove_node(node->value);
   free(node);
 }
 

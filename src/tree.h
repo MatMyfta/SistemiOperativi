@@ -13,6 +13,8 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 
+
+
 typedef struct unitnos_tree unitnos_tree;
 typedef struct unitnos_node unitnos_node;
 
@@ -23,7 +25,7 @@ typedef struct unitnos_node unitnos_node;
  * memoria
  */
 unitnos_tree *unitnos_tree_create(int (*compare)(void *v1, void *v2),
-                                  int (*free_mem)(void *value));
+                                  int (*remove_node)(void *value));
 
 /**
  * Aggiunge un nodo con il valore indicato
