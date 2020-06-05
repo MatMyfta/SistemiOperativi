@@ -2,11 +2,11 @@
 #include "counter.h"
 
 #define LOG_TAG "counter"
-#include "../../list.h"
 #include "../../logger.h"
 #include "../../protocol.h"
-#include "../../tree.h"
 #include "../../path_node.h"
+#include "../../containers/list.h"
+#include "../../containers/tree.h"
 
 #include <assert.h>
 #include <stdio.h>

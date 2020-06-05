@@ -1,3 +1,4 @@
+add_subdirectory(containers)
 add_subdirectory(analyzer)
 add_subdirectory(main)
 
@@ -8,7 +9,9 @@ target_sources(common
   logger.c
   utils.c
   protocol.c
-  list.c
-  tree.c
   path_node.c
+  )
+target_link_libraries(common
+  PUBLIC
+  containers
   )
