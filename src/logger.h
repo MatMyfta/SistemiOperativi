@@ -34,7 +34,13 @@ enum unitnos_logger_log_level {
   UNITNOS_LOGGER_LOG_LVL_TOTAL_LEVELS,
 };
 
-#define UNITNOS_LOGGER_LOG_LEVEL UNITNOS_LOGGER_LOG_LVL_DEBUG
+#define UNITNOS_LOGGER_LOG_LVL_ERROR 0
+#define UNITNOS_LOGGER_LOG_LVL_WARN 1
+#define UNITNOS_LOGGER_LOG_LVL_INFO 2
+#define UNITNOS_LOGGER_LOG_LVL_DEBUG 3
+#define UNITNOS_LOGGER_LOG_LVL_VERBOSE 4
+
+#define UNITNOS_LOGGER_LOG_LEVEL UNITNOS_LOGGER_LOG_LVL_VERBOSE
 
 /**
  * Build to initial portion of the log string
@@ -75,21 +81,46 @@ void unitnos_logger_log_end(char *log_string, size_t remaining_size,
 #ifndef LOG_TAG
 #define LOG_TAG "N/A"
 #endif
+
+#if UNITNOS_LOGGER_LOG_LEVEL >= UNITNOS_LOGGER_LOG_LVL_ERROR
 #define log_error(...)                                                         \
   unitnos_logger_log(UNITNOS_LOGGER_LOG_LVL_ERROR, LOG_TAG, __FILE__,          \
                      __FUNCTION__, __LINE__, __VA_ARGS__)
+#else
+#define log_error(...) ((void)0)
+#endif
+
+#if UNITNOS_LOGGER_LOG_LEVEL >= UNITNOS_LOGGER_LOG_LVL_WARN
 #define log_warn(...)                                                          \
   unitnos_logger_log(UNITNOS_LOGGER_LOG_LVL_WARN, LOG_TAG, __FILE__,           \
                      __FUNCTION__, __LINE__, __VA_ARGS__)
+#else
+#define log_warn(...) ((void)0)
+#endif
+
+#if UNITNOS_LOGGER_LOG_LEVEL >= UNITNOS_LOGGER_LOG_LVL_INFO
 #define log_info(...)                                                          \
   unitnos_logger_log(UNITNOS_LOGGER_LOG_LVL_INFO, LOG_TAG, __FILE__,           \
                      __FUNCTION__, __LINE__, __VA_ARGS__)
+#else
+#define log_info(...) ((void)0)
+#endif
+
+#if UNITNOS_LOGGER_LOG_LEVEL >= UNITNOS_LOGGER_LOG_LVL_DEBUG
 #define log_debug(...)                                                         \
   unitnos_logger_log(UNITNOS_LOGGER_LOG_LVL_DEBUG, LOG_TAG, __FILE__,          \
                      __FUNCTION__, __LINE__, __VA_ARGS__)
+#else
+#define log_debug(...) ((void)0)
+#endif
+
+#if UNITNOS_LOGGER_LOG_LEVEL >= UNITNOS_LOGGER_LOG_LVL_VERBOSE
 #define log_verbose(...)                                                       \
   unitnos_logger_log(UNITNOS_LOGGER_LOG_LVL_VERBOSE, LOG_TAG, __FILE__,        \
                      __FUNCTION__, __LINE__, __VA_ARGS__)
+#else
+#define log_verbose(...) ((void)0)
+#endif
 
 #ifdef __cplusplus
 }
