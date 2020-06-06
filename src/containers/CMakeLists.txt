@@ -1,6 +1,7 @@
 add_library(containers STATIC "")
 target_sources(containers
   PRIVATE
+  base.c
   list.c
   tree.c
   dictionary.c

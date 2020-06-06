@@ -4,6 +4,8 @@
  * \brief Generic BST - interface
  *
  * It can be used to build more advanced/specific data structures.
+ *
+ * It can be used as a set.
  */
 #ifndef UNITNOS_TREE_H_
 #define UNITNOS_TREE_H_

@@ -36,6 +36,17 @@ typedef int (*unitnos_compare_func)(const void *lhs, const void *rhs,
  */
 typedef void (*unitnos_destroy_nodify)(void *data, void *user_data);
 
+/**
+ * Wrapper of strcmp() that can be used as unitnos_compare_func
+ */
+int unitnos_container_util_strcmp(const void *lhs, const void *rhs,
+                                  void *user_data);
+
+/**
+ * Wrapper of free() that can be used as unitnos_destroy_nodify
+ */
+void unitnos_container_util_free(void *data, void *user_data);
+
 #ifdef __cplusplus
 }
 #endif
