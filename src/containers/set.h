@@ -8,8 +8,8 @@
 #ifndef UNITNOS_SET_H_
 #define UNITNOS_SET_H_
 
-#include "base.h"
 #include "../bool.h"
+#include "base.h"
 
 #include <stdlib.h>
 

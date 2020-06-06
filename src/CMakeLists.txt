@@ -29,7 +29,6 @@ target_sources(common
   logger.c
   utils.c
   protocol.c
-  path_node.c
   )
 target_link_libraries(common
   PUBLIC

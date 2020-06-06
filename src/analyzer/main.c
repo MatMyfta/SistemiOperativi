@@ -87,10 +87,6 @@ static int child_analyzer_main(int in_pipe, int output_pipe) {
       }
 
       if (!strcmp(command.command, UNITNOS_ANALYZER_COMMAND_ADD_NEW_PATH)) {
-        /*char* path = malloc(PATH_MAX * sizeof(char));
-        strcpy(path, command.value);
-        unitnos_counter_add_new_path(counter, path);*/
-        printf("%s", command.value);
         unitnos_counter_add_new_path(counter, command.value);
       }
 
