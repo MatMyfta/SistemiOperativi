@@ -121,7 +121,7 @@ static bool is_pipe_valid(char *pipe_fd) {
   long fd = strtol(pipe_fd, &tmp, 0);
   if (tmp != pipe_fd && errno != ERANGE) {
     return fileno(stdin) != fd && fileno(stdout) != fd &&
-      fcntl(fd, F_GETFD) != -1;
+           fcntl(fd, F_GETFD) != -1;
   }
   return false;
 }

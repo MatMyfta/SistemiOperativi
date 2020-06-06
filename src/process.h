@@ -16,7 +16,6 @@ extern "C" {
 
 typedef struct unitnos_process unitnos_process;
 
-
 /**
  * Open a process by creating two pipes, forking, and invoking execv with
  * provided arguments.

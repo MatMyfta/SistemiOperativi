@@ -86,7 +86,7 @@ bool unitnos_tree_contains(unitnos_tree *tree, const void *value);
  *
  * \returns the original value
  */
-void* unitnos_tree_lookup(unitnos_tree *tree, const void *value);
+void *unitnos_tree_lookup(unitnos_tree *tree, const void *value);
 
 #ifdef __cplusplus
 }

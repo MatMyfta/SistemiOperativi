@@ -93,7 +93,8 @@ void *unitnos_dictionary_lookup(unitnos_dictionary *dictionary,
 /**
  * Check whether the given key is present
  */
-bool unitnos_dictionary_contains(unitnos_dictionary *dictionary, const void *key);
+bool unitnos_dictionary_contains(unitnos_dictionary *dictionary,
+                                 const void *key);
 
 /**
  * Removes a key/value pair from a dictionary.

@@ -73,12 +73,14 @@ void *unitnos_dictionary_lookup(unitnos_dictionary *dictionary,
   }
   return NULL;
 }
-bool unitnos_dictionary_contains(unitnos_dictionary *dictionary, const void *key) {
+bool unitnos_dictionary_contains(unitnos_dictionary *dictionary,
+                                 const void *key) {
   struct unitnos_dictionary_node node;
   node.key = (void *)key;
   return unitnos_tree_contains(dictionary->tree, &node);
 }
-void unitnos_dictionary_remove(unitnos_dictionary *dictionary, const void *key) {
+void unitnos_dictionary_remove(unitnos_dictionary *dictionary,
+                               const void *key) {
   struct unitnos_dictionary_node node;
   node.key = (void *)key;
   unitnos_tree_remove(dictionary->tree, &node);
@@ -90,8 +92,9 @@ void unitnos_dictionary_foreach(unitnos_dictionary *dictionary,
                                 unitnos_dictionary_transverse_func func,
                                 void *user_data) {
   // GNU C extension
-  bool transverse (void *val, void *user_data) {
-    struct unitnos_dictionary_node *node = (struct unitnos_dictionary_node *)val;
+  bool transverse(void *val, void *user_data) {
+    struct unitnos_dictionary_node *node =
+        (struct unitnos_dictionary_node *)val;
     return func(node->key, node->value, user_data);
   }
   unitnos_tree_foreach(dictionary->tree, transverse, user_data);

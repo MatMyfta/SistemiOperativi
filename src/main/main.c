@@ -1,6 +1,6 @@
 #define LOG_TAG "main"
-#include "../logger.h"
 #include "../analyzer/analyzer.h"
+#include "../logger.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -47,7 +47,8 @@ struct command g_commands[] = {
     },
     {
         .name = UNITNOS_ANALYZER_COMMAND_SET_M,
-        .help = "Update number of process \"q\" for each process \"p\". Usage: set_m <m>",
+        .help = "Update number of process \"q\" for each process \"p\". Usage: "
+                "set_m <m>",
         .function = set_m_command,
     },
 };
@@ -173,7 +174,7 @@ static int add_new_path_command(int argc, const char *argv[]) {
   return 0;
 }
 static int list_paths_command(int argc, const char *argv[]) {
-  if (argc !=  1) {
+  if (argc != 1) {
     log_error("Usage: list_paths");
     return -1;
   }

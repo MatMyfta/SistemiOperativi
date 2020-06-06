@@ -9,10 +9,10 @@
 #include "../protocol.h"
 
 #include <assert.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <limits.h>
 
 static int independent_analyzer_main(int argc, char **argv);
 static int child_analyzer_main(int in_pipe, int output_pipe);
@@ -67,7 +67,6 @@ static int child_analyzer_main(int in_pipe, int output_pipe) {
   char *message = NULL;
   size_t message_size = 0;
 
-  
   while (1) {
     if (getline(&message, &message_size, fin) >= 0) {
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);
@@ -91,7 +90,7 @@ static int child_analyzer_main(int in_pipe, int output_pipe) {
         /*char* path = malloc(PATH_MAX * sizeof(char));
         strcpy(path, command.value);
         unitnos_counter_add_new_path(counter, path);*/
-        printf("%s",command.value);
+        printf("%s", command.value);
         unitnos_counter_add_new_path(counter, command.value);
       }
 

@@ -17,7 +17,8 @@ typedef struct unitnos_analyzer unitnos_analyzer;
 unitnos_analyzer *unitnos_analyzer_create(void);
 void unitnos_analyzer_set_n(unitnos_analyzer *analyzer, unsigned int n);
 void unitnos_analyzer_set_m(unitnos_analyzer *analyzer, unsigned int m);
-void unitnos_analyzer_add_new_path(unitnos_analyzer *analyzer, const char *path);
+void unitnos_analyzer_add_new_path(unitnos_analyzer *analyzer,
+                                   const char *path);
 void unitnos_analyzer_list_paths(unitnos_analyzer *analyzer);
 /**
  * Process any unread messages in the pipe
