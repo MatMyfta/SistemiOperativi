@@ -4,6 +4,7 @@
 #define LOG_TAG "counter"
 #include "../../containers/list.h"
 #include "../../containers/tree.h"
+#include "../../containers/dictionary.h"
 #include "../../logger.h"
 #include "../../path_node.h"
 #include "../../protocol.h"
@@ -16,10 +17,36 @@
 
 struct counter_state {
   list *p_list;
+  unitnos_dictionary *paths;
   unsigned int n;
   unsigned int m;
-  unitnos_tree *paths;
 };
+
+static int compare_key (const void* key1, const void* key2, void* dictionary) {
+  int ret_value;
+  ret_value=strcmp((char*)key1, (char*)key2);
+  if (ret_value>0)
+    ret_value=1;
+  else if (ret_value<0)
+    ret_value=-1;
+  return ret_value;
+}
+
+static void destroy_key (void* key, void* dictionary) {
+  free((char*) key);
+  key=NULL;
+}
+
+static void destroy_value (void* value, void* dictionary) {
+  remove_node(value);
+  value=NULL;
+}
+
+static bool print_dictionary_node (void *key, void *value, void *user_data) {
+  printf("[Path: %s]:\n", (char*) key);
+  print_node(value);
+  return false;
+}
 
 static void set_n(struct counter_state *state) {
   int p_cnt_diff = state->n - list_size(state->p_list);
@@ -72,7 +99,7 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
 
   struct counter_state state = {0};
   state.p_list = list_create(sizeof(unitnos_p *));
-  state.paths = unitnos_tree_create((*compare), (*remove_node));
+  state.paths = unitnos_dictionary_create(compare_key,*destroy_key, *destroy_value, NULL);
 
   char *message = NULL;
   size_t message_size = 0;
@@ -108,28 +135,23 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
 
       if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_ADD_NEW_PATH)) {
         log_verbose("Received path: %s", command.value);
-        unitnos_path_node *tmp = create_path_node();
 
-        if (fill_path_node(tmp, command.value)) {
-          // print_node(tmp);
-          ////remove_node(tmp);
-          unitnos_tree_add_node(state.paths, tmp);
-          add_new_path(&state, command.value); // not sure
-          // free(tmp); ---> ?????
-        } else {
-          log_error("<path> not valid");
-          free(tmp);
+        char *path = malloc(strlen(command.value)+1);
+        strcpy(path, command.value);
+        unitnos_path_node* tmp= create_path_node();
+        if (tmp!=NULL) {
+          if ((fill_path_node(tmp, path)) == 0)
+            unitnos_dictionary_insert(state.paths, path, tmp);
+          else
+            log_verbose("Error on filling path: %s\n", path);
         }
       }
 
       if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_LIST_PATHS)) {
-
-        /*
-        Temporaneamente stampo solo la lunghezza della lista di tutti i path
-        */
-        printf("%lu\n", list_size(state.p_list));
-        // TODO procedura list paths.. on working
+        unitnos_dictionary_foreach(state.paths, print_dictionary_node, NULL);
+        printf("Path memorizzati: %ld", unitnos_dictionary_size(state.paths));
       }
+      log_verbose("Terminated command: %s", command.command);
     } else if (feof(fin)) {
       log_debug("Input pipe closed. Terminate");
       break;

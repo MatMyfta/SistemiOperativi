@@ -1,7 +1,6 @@
 #include "path_node.h"
 
 struct unitnos_path_node {
-  char *name;
   char (*index)[PATH_MAX];
   int rows;
 };
@@ -13,16 +12,12 @@ unitnos_path_node *create_path_node() {
 int fill_path_node(unitnos_path_node *node, char *path) {
   int ret_value = 0;
   if (node != NULL) {
-    if ((node->name = malloc(strlen(path) + 1))) {
-      strcpy(node->name, path);
-      node->rows = 0;
-      node->index = NULL;
-      // if ((node->index = malloc (((node->rows)+1)*sizeof(node->index)))) {
-      ret_value = validate(node->name, &node->index, &node->rows);
-      //} else
-      // return_value = 1;
-    } else
-      ret_value = 0;
+    node->rows = 0;
+    node->index = NULL;
+    // if ((node->index = malloc (((node->rows)+1)*sizeof(node->index)))) {
+    ret_value = validate(path, &node->index, &node->rows);
+    //} else
+    // return_value = 1;
   } else
     ret_value = 0;
   return ret_value;
@@ -32,26 +27,17 @@ void remove_node(unitnos_path_node *node) {
   int i;
   node->rows = 0;
   free(node->index);
-  free(node->name);
   free(node);
 }
 
 void print_node(unitnos_path_node *node) {
   int x = 0;
   while (x < node->rows) {
-    printf("[path: %s] - [index %d:%s]\n", node->name, x, node->index[x]);
+    printf("\t[index %d:%s]\n", x, node->index[x]);
     x++;
   }
 }
 
-int compare(unitnos_path_node *node1, unitnos_path_node *node2) {
-  int return_value = strcmp(node1->name, node2->name);
-  if (return_value > 0)
-    return_value = 1;
-  else if (return_value < 0)
-    return_value = 1;
-  return return_value;
-}
 
 // PROVA MAIN
 /*
@@ -87,7 +73,7 @@ int validate(char *path, char (*(*indexes))[PATH_MAX], int *rows) {
    * Comportamenti analoghi e controllati per entrambi gli ambienti.
    */
 
-  char *command = concat("/bin/find ", path); // Not able to intercept stderr
+  char *command = concat("/usr/bin/find ", path); // Not able to intercept stderr
   command = concat(command, " -type f 2>&1"); //   stderr goes on stdout
   fp = popen(command, "r");
   free(command);
@@ -121,11 +107,13 @@ int validate(char *path, char (*(*indexes))[PATH_MAX], int *rows) {
   // (*(indexes))[i]);
   fclose(fp);
 
-  if ((*rows) == 1 && strstr((*(indexes))[(*rows) - 1], "/bin/find:") != NULL) {
+  if ((*rows) == 1 && (strstr((*(indexes))[(*rows) - 1], "/bin/find:") != NULL)) {
+    rt_value = 1;
+    printf("%s ---%s\n", "Error with bin find", (*(indexes))[(*rows) - 1]);
+  } else {
     free((*indexes));
     rt_value = 0;
-  } else
-    rt_value = 1;
+  }
 
   return rt_value;
 }

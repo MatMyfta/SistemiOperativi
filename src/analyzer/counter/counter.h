@@ -8,7 +8,7 @@ extern "C" {
 #define UNITNOS_COUNTER_COMMAND_SET_N "set_n"
 #define UNITNOS_COUNTER_COMMAND_SET_M "set_m"
 #define UNITNOS_COUNTER_COMMAND_ADD_NEW_PATH "add_new_path"
-#define UNITNOS_COUNTER_COMMAND_LIST_PATHS "list paths"
+#define UNITNOS_COUNTER_COMMAND_LIST_PATHS "list_paths"
 
 /*******************************************************************************
  * API for parent process
