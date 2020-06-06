@@ -13,7 +13,6 @@
 #include "../bool.h"
 #include "base.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 
 #ifdef __cplusplus
@@ -31,13 +30,9 @@ typedef struct unitnos_tree unitnos_tree;
 typedef bool (*unitnos_tree_transverse_func)(void *value, void *user_data);
 
 /**
- * Restituisce un nuovo albero
- *
- * Ciascun albero ha le sue funzioni per il confronto e la liberazione della
- * memoria
- *
- * \param [in] user_data optional user data pased to compare_func and
- * value_destroy_func
+ * Creates a new tree like and allows to specify functions to free the memory
+ * allocated for the value that get called when removing the entry from the
+ * tree.
  */
 unitnos_tree *unitnos_tree_create(unitnos_compare_func compare_func,
                                   unitnos_destroy_nodify value_destroy_func,

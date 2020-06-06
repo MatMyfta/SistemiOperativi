@@ -4,6 +4,7 @@ target_sources(containers
   base.c
   list.c
   tree.c
+  set.c
   dictionary.c
   )
 
