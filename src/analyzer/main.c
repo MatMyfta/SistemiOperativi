@@ -34,6 +34,9 @@ static int independent_analyzer_main(int argc, char **argv) {
 
   int n = atoi(argv[1]);
   int m = atoi(argv[2]);
+  if (n <= 0 || m <= 0) {
+    log_error("Invalid parameters: N and M must be greater than 0");
+  }
 
   unitnos_analyzer *analyzer = unitnos_analyzer_create();
 

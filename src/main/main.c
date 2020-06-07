@@ -189,6 +189,10 @@ static int set_n_command(int argc, const char *argv[]) {
   char *tmp;
   unsigned long n = strtoul(argv[1], &tmp, 0);
   if (tmp != argv[1]) {
+    if (n == 0) {
+      log_error("Invalid parameter: n has to be greater than 0");
+      return -1;
+    }
     unitnos_analyzer_set_n(g_analyzer, n);
   } else {
     log_error("Invalid parameter: not an unsigned integer");
@@ -204,6 +208,10 @@ static int set_m_command(int argc, const char *argv[]) {
   char *tmp;
   unsigned long m = strtoul(argv[1], &tmp, 0);
   if (tmp != argv[1]) {
+    if (m == 0) {
+      log_error("Invalid parameter: m has to be greater than 0");
+      return -1;
+    }
     unitnos_analyzer_set_m(g_analyzer, m);
   } else {
     log_error("Invalid parameter: not an unsigned integer");
