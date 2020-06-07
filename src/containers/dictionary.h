@@ -133,6 +133,19 @@ void unitnos_dictionary_foreach(unitnos_dictionary *dictionary,
  */
 size_t unitnos_dictionary_size(unitnos_dictionary *dictionary);
 
+/**
+ * Get the key with the highest value in the dictionary
+ *
+ * \returns the highest key, if any
+ */
+void *unitnos_dictionary_max(unitnos_dictionary *dictionary);
+/**
+ * Get the key with the lowest value in the dictionary
+ *
+ * \returns the lowest value, if any
+ */
+void *unitnos_dictionary_min(unitnos_dictionary *dictionary);
+
 #ifdef __cplusplus
 }
 #endif

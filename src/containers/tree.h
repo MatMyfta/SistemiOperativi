@@ -84,6 +84,18 @@ bool unitnos_tree_contains(unitnos_tree *tree, const void *value);
  * \returns the original value
  */
 void *unitnos_tree_lookup(unitnos_tree *tree, const void *value);
+/**
+ * Get the highest value in the tree
+ *
+ * \returns the highest value, if any
+ */
+void *unitnos_tree_max(unitnos_tree *tree);
+/**
+ * Get the lowest value in the tree
+ *
+ * \returns the lowest value, if any
+ */
+void *unitnos_tree_min(unitnos_tree *tree);
 
 #ifdef __cplusplus
 }

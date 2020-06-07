@@ -100,6 +100,21 @@ void unitnos_dictionary_foreach(unitnos_dictionary *dictionary,
   unitnos_tree_foreach(dictionary->tree, transverse, user_data);
 }
 
+void *unitnos_dictionary_max(unitnos_dictionary *dictionary) {
+  struct unitnos_dictionary_node *node = unitnos_tree_max(dictionary->tree);
+  if (node) {
+    return node->key;
+  }
+  return NULL;
+}
+void *unitnos_dictionary_min(unitnos_dictionary *dictionary) {
+  struct unitnos_dictionary_node *node = unitnos_tree_min(dictionary->tree);
+  if (node) {
+    return node->key;
+  }
+  return NULL;
+}
+
 /*******************************************************************************
  * Private functions implementation
  *******************************************************************************/
