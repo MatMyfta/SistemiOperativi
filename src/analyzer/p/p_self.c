@@ -5,7 +5,7 @@
 #define LOG_TAG "p"
 #include "../../logger.h"
 
-#include "../../list.h"
+#include "../../containers/list.h"
 #include "../../protocol.h"
 
 #include <assert.h>
@@ -50,7 +50,6 @@ static void add_new_file(struct p_state *state, const char *new_path) {
 
 int unitnos_p_self_main(int in_pipe, int output_pipe) {
   log_debug("Started");
-
   FILE *fin = fdopen(in_pipe, "r");
 
   struct p_state state = {0};

@@ -45,11 +45,12 @@ void unitnos_analyzer_set_m(unitnos_analyzer *analyzer, unsigned int m) {
 void unitnos_analyzer_add_new_path(unitnos_analyzer *analyzer,
                                    const char *path) {
   unitnos_procotol_send_command1(unitnos_process_get_fd(analyzer->process, "w"),
-                                 UNITNOS_ANALYZER_COMMAND_ADD_NEW_PATH, "%s", path);
+                                 UNITNOS_ANALYZER_COMMAND_ADD_NEW_PATH, "%s",
+                                 path);
 }
 void unitnos_analyzer_list_paths(unitnos_analyzer *analyzer) {
   unitnos_procotol_send_command(unitnos_process_get_fd(analyzer->process, "w"),
-                                 UNITNOS_ANALYZER_COMMAND_LIST_PATHS);
+                                UNITNOS_ANALYZER_COMMAND_LIST_PATHS);
 }
 void unitnos_analyzer_process(unitnos_analyzer *analyzer) {
   char *message = NULL;

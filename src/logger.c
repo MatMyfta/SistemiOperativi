@@ -9,6 +9,7 @@
 #include "bool.h"
 
 #include <assert.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,7 +46,7 @@ size_t logbufcpy(size_t index, char *log_line, const char *src);
 /*******************************************************************************
  * Private variable & constants
  ******************************************************************************/
-#define LOG_LINE_LENGTH (1024 + 1)
+#define LOG_LINE_LENGTH (PATH_MAX * 2 + 1)
 #define LOG_MAX_SOURCE_FILE_LINE_DIGITS (6)
 #define NEW_LINE_SIGN ("\n")
 

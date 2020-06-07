@@ -1,6 +1,6 @@
 #define LOG_TAG "main"
-#include "../logger.h"
 #include "../analyzer/analyzer.h"
+#include "../logger.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -31,23 +31,24 @@ struct command g_commands[] = {
         .function = help_command,
     },
     {
-        .name = "add_new_path",
+        .name = UNITNOS_ANALYZER_COMMAND_ADD_NEW_PATH,
         .help = "Add another path to analyze. Usage: add_new_path <path>",
         .function = add_new_path_command,
     },
     {
-        .name = "list_paths",
+        .name = UNITNOS_ANALYZER_COMMAND_LIST_PATHS,
         .help = "Add another path to analyze. Usage: list_paths",
         .function = list_paths_command,
     },
     {
-        .name = "set_n",
+        .name = UNITNOS_ANALYZER_COMMAND_SET_N,
         .help = "Update number of process \"p\". Usage set_n <n>",
         .function = set_n_command,
     },
     {
-        .name = "set_m",
-        .help = "Update number of process \"q\" for each process \"p\". Usage: set_m <m>",
+        .name = UNITNOS_ANALYZER_COMMAND_SET_M,
+        .help = "Update number of process \"q\" for each process \"p\". Usage: "
+                "set_m <m>",
         .function = set_m_command,
     },
 };
@@ -167,12 +168,13 @@ static int help_command(int argc, const char *argv[]) {
 static int add_new_path_command(int argc, const char *argv[]) {
   if (argc != 2) {
     log_error("Usage: add_new_path <path>");
+    return -1;
   }
   unitnos_analyzer_add_new_path(g_analyzer, argv[1]);
   return 0;
 }
 static int list_paths_command(int argc, const char *argv[]) {
-  if (argc !=  1) {
+  if (argc != 1) {
     log_error("Usage: list_paths");
     return -1;
   }
