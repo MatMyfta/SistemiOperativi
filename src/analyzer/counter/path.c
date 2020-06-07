@@ -12,7 +12,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define FIND_COMMNAD_PRE "/bin/find "
+#define FIND_COMMNAD_PRE "find "
 /**
  * We need to redirect stderr to stdout, because popen executes the passed
  * command through a shell, i.e. `sh -c <command>`.
