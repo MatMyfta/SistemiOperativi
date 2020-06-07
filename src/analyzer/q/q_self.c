@@ -50,6 +50,10 @@ int unitnos_q_self_main(int in_pipe, int output_pipe) {
       if (!strcmp(command.command, UNITNOS_Q_COMMAND_ADD_NEW_FILE)) {
         log_verbose("Received file: %s", command.value);
       }
+
+      if (!strcmp(command.command, UNITNOS_Q_COMMAND_REMOVE_FILE)) {
+        log_verbose("Received file: %s", command.value);
+      }
     } else if (feof(fin)) {
       log_debug("Input pipe closed. Terminate");
       break;

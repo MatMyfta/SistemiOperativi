@@ -41,7 +41,11 @@ void unitnos_q_set_siblings_cnt(unitnos_q *q, unsigned int m) {
 }
 void unitnos_q_add_new_file(unitnos_q *q, const char *file) {
   unitnos_procotol_send_command1(unitnos_process_get_fd(q->process, "w"),
-                                 UNITNOS_Q_COMMAND_SET_ITH, "%s", file);
+                                 UNITNOS_Q_COMMAND_ADD_NEW_FILE, "%s", file);
+}
+void unitnos_q_remove_file(unitnos_q *q, const char *file) {
+  unitnos_procotol_send_command1(unitnos_process_get_fd(q->process, "w"),
+                                 UNITNOS_Q_COMMAND_REMOVE_FILE, "%s", file);
 }
 
 void unitnos_q_read(unitnos_q *p) {

@@ -33,7 +33,7 @@ struct analyzer_state {
  * Private functions declarations
  *******************************************************************************/
 static int dict_path_compare(const void *lhs, const void *rhs, void *user_data);
-static void dict_value_dict_destroy(void *set, void *user_data);
+static void dict_value_dict_destroy(void *dict, void *user_data);
 
 static void add_new_path(struct analyzer_state *state, const char *new_path);
 static void list_paths(struct analyzer_state *state);
@@ -114,6 +114,11 @@ static bool insert_into_dict(void *file, void *user_data) {
   unitnos_dictionary_insert(file_statistics_dict, file, NULL);
   return false;
 }
+static bool communicate_to_counter(void *file, void *user_data) {
+  struct analyzer_state *state = (struct analyzer_state *)user_data;
+  unitnos_counter_add_new_file(state->counter, file);
+  return false;
+}
 static void add_new_path(struct analyzer_state *state, const char *new_path) {
   // normalize path
   char *normalized_path = realpath(new_path, NULL);
@@ -143,6 +148,7 @@ static void add_new_path(struct analyzer_state *state, const char *new_path) {
                                    */
                                   unitnos_container_util_free, NULL);
     unitnos_set_foreach(file_paths_set, insert_into_dict, dict);
+    unitnos_set_foreach(file_paths_set, communicate_to_counter, state);
     unitnos_dictionary_insert(state->statistics, normalized_path, dict);
     unitnos_set_destroy(file_paths_set);
   }

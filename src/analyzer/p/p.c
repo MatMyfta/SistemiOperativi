@@ -38,6 +38,10 @@ void unitnos_p_add_new_file(unitnos_p *p, const char *file) {
   unitnos_procotol_send_command1(unitnos_process_get_fd(p->process, "w"),
                                  UNITNOS_P_COMMAND_ADD_NEW_FILE, "%s", file);
 }
+void unitnos_p_remove_file(unitnos_p *p, const char *file) {
+  unitnos_procotol_send_command1(unitnos_process_get_fd(p->process, "w"),
+                                 UNITNOS_P_COMMAND_REMOVE_FILE, "%s", file);
+}
 void unitnos_p_read(unitnos_p *p) {
   int fd = unitnos_process_get_fd(p->process, "r");
   char buf[30];

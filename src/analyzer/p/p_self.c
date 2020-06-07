@@ -5,8 +5,10 @@
 #define LOG_TAG "p"
 #include "../../logger.h"
 
+#include "../../containers/dictionary.h"
 #include "../../containers/list.h"
 #include "../../protocol.h"
+#include "../../statistics.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -14,46 +16,49 @@
 #include <string.h>
 #include <unistd.h>
 
+struct file_statistics {
+  /**
+   * The final whole-file statistics in which statistics of file chunks from
+   * "q" are gradually merged.
+   */
+  struct unitnos_char_count_statistics statistics;
+  /**
+   * The number of process "q" that haven't supplied their portion of
+   * statistics yet
+   */
+  unsigned int missing;
+};
+
 struct p_state {
-  list *q_list;
+  unitnos_list *q_list;
+  /**
+   * Keys: file paths
+   * Values: instance of `struct file_statistics`
+   */
+  unitnos_dictionary *file_statistics_dict;
   unsigned int m;
 };
 
-static void set_m(struct p_state *state) {
-  int q_cnt_diff = state->m - list_size(state->q_list);
-  unitnos_q *q;
-  if (q_cnt_diff > 0) {
-    log_debug("Creating %d \"q\"", q_cnt_diff);
-    // create new p
-    while (q_cnt_diff--) {
-      q = unitnos_q_create();
-      if (q != NULL) {
-        list_push_back(state->q_list, &q);
-      }
-    }
-  } else if (q_cnt_diff < 0) {
-    log_debug("Destroying %d \"q\"", -q_cnt_diff);
-    // remove p
-    while (q_cnt_diff++) {
-      list_pop_back(state->q_list);
-    }
-  }
-}
+/*******************************************************************************
+ * Private functions declarations
+ *******************************************************************************/
+static void q_destructor(void *value, void *user_data);
+static void set_m(struct p_state *state, unsigned int m);
+static void add_new_file(struct p_state *state, const char *new_file);
+static void remove_file(struct p_state *state, const char *removed_file);
 
-static void add_new_file(struct p_state *state, const char *new_path) {
-  list_node *node;
-  unitnos_q **q;
-  list_for_each_data(q, unitnos_q *, node, state->q_list) {
-    unitnos_q_add_new_file(*q, new_path);
-  }
-}
-
+/*******************************************************************************
+ * Public functions implementation
+ *******************************************************************************/
 int unitnos_p_self_main(int in_pipe, int output_pipe) {
   log_debug("Started");
   FILE *fin = fdopen(in_pipe, "r");
 
   struct p_state state = {0};
-  state.q_list = list_create(sizeof(unitnos_q *));
+  state.q_list = unitnos_list_create(q_destructor, &state);
+  state.file_statistics_dict = unitnos_dictionary_create(
+      unitnos_container_util_strcmp, unitnos_container_util_free,
+      unitnos_container_util_free, NULL);
 
   char *message = NULL;
   size_t message_size = 0;
@@ -64,17 +69,21 @@ int unitnos_p_self_main(int in_pipe, int output_pipe) {
       log_verbose("Received command: %s", command.command);
 
       if (!strcmp(command.command, UNITNOS_P_COMMAND_SET_M)) {
-        unsigned int n;
-        int ret = sscanf(command.value, "%u", &n);
+        unsigned int m;
+        int ret = sscanf(command.value, "%u", &m);
         assert(ret > 0);
-        log_verbose("Received m: %u", n);
-        state.m = n;
-        set_m(&state);
+        log_verbose("Received m: %u", m);
+        set_m(&state, m);
       }
 
       if (!strcmp(command.command, UNITNOS_P_COMMAND_ADD_NEW_FILE)) {
         log_verbose("Received file: %s", command.value);
         add_new_file(&state, command.value);
+      }
+
+      if (!strcmp(command.command, UNITNOS_P_COMMAND_REMOVE_FILE)) {
+        log_verbose("Received file: %s", command.value);
+        remove_file(&state, command.value);
       }
     } else if (feof(fin)) {
       log_debug("Input pipe closed. Terminate");
@@ -83,4 +92,124 @@ int unitnos_p_self_main(int in_pipe, int output_pipe) {
   }
 
   return 0;
+}
+
+/*******************************************************************************
+ * Private functions implementation
+ *******************************************************************************/
+static void q_destructor(void *value, void *user_data) {
+  unitnos_q_destroy(value);
+}
+
+/*******************************************************************************
+ * set_m and helpers
+ *******************************************************************************/
+struct set_m_context {
+  struct p_state *state;
+  unsigned int new_m;
+  unsigned int old_m;
+  size_t index;
+};
+static bool send_file_to_new_q(void *key, void *value, void *user_data) {
+  const char *file = (const char *)key;
+  unitnos_q *q = (unitnos_q *)user_data;
+  unitnos_q_add_new_file(q, file);
+  return false;
+}
+static bool send_new_m(void *value, void *user_data) {
+  struct set_m_context *context = (struct set_m_context *)user_data;
+  unitnos_q *q = (unitnos_q *)value;
+
+  unitnos_q_set_siblings_cnt(q, context->new_m);
+
+  /*
+   * We add and remove the list of "q" in LIFO.
+   * For "q"s that are not newly created we don't have to update their index
+   * and the files they have to read
+   */
+  if (context->index >= context->old_m) {
+    unitnos_q_set_ith(q, context->index);
+    unitnos_dictionary_foreach(context->state->file_statistics_dict,
+                               send_file_to_new_q, q);
+  }
+
+  ++context->index;
+  return false;
+}
+
+static bool invalidate_statistics(void *key, void *value, void *user_data) {
+  struct p_state *state = (struct p_state *)user_data;
+  struct file_statistics *stat = (struct file_statistics *)value;
+  memset(stat, 0, sizeof(struct file_statistics));
+  stat->missing = state->m;
+  return false;
+}
+
+static void set_m(struct p_state *state, unsigned int m) {
+  struct set_m_context context;
+  context.old_m = state->m;
+  context.new_m = m;
+  context.state = state;
+  context.index = 0;
+
+  state->m = m;
+  int q_cnt_diff = state->m - unitnos_list_size(state->q_list);
+
+  unitnos_q *q;
+  if (q_cnt_diff > 0) {
+    log_debug("Creating %d \"q\"", q_cnt_diff);
+    // create new q
+    while (q_cnt_diff--) {
+      q = unitnos_q_create();
+      if (q != NULL) {
+        unitnos_list_push_back(state->q_list, &q);
+      }
+    }
+  } else if (q_cnt_diff < 0) {
+    log_debug("Destroying %d \"q\"", -q_cnt_diff);
+    // remove q
+    while (q_cnt_diff++) {
+      unitnos_list_pop_back(state->q_list);
+    }
+  }
+
+  unitnos_list_foreach(state->q_list, send_new_m, &context);
+  // m has changed. Invalidate the statistics.
+  unitnos_dictionary_foreach(state->file_statistics_dict, invalidate_statistics,
+                             state);
+}
+
+/*******************************************************************************
+ * add_new_file and helpers
+ *******************************************************************************/
+static bool send_new_path(void *value, void *user_data) {
+  const char *file = (const char *)user_data;
+  unitnos_q *q = (unitnos_q *)value;
+  unitnos_q_add_new_file(q, file);
+  return false;
+}
+static void add_new_file(struct p_state *state, const char *new_file) {
+  char *str = malloc(strlen(new_file) + 1);
+  strcpy(str, new_file);
+
+  struct file_statistics *stat = malloc(sizeof(struct file_statistics));
+  memset(stat, 0, sizeof(struct file_statistics));
+  stat->missing = state->m;
+
+  unitnos_dictionary_insert(state->file_statistics_dict, str, stat);
+  unitnos_list_foreach(state->q_list, send_new_path, str);
+}
+
+/*******************************************************************************
+ * remove_file and helpers
+ *******************************************************************************/
+static bool remove_foreach_q(void *value, void *user_data) {
+  const char *removed_file = (const char *)user_data;
+  unitnos_q *q = (unitnos_q *)value;
+  unitnos_q_remove_file(q, removed_file);
+  return false;
+}
+static void remove_file(struct p_state *state, const char *removed_file) {
+  unitnos_dictionary_remove(state->file_statistics_dict, removed_file);
+  unitnos_list_foreach(state->q_list, remove_foreach_q, (void *)removed_file);
 }
