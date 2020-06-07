@@ -42,14 +42,10 @@ void unitnos_counter_set_m(unitnos_counter *counter, unsigned int m) {
   unitnos_procotol_send_command1(unitnos_process_get_fd(counter->process, "w"),
                                  UNITNOS_COUNTER_COMMAND_SET_M, "%u", m);
 }
-void unitnos_counter_add_new_path(unitnos_counter *counter, const char *path) {
+void unitnos_counter_add_new_file(unitnos_counter *counter, const char *path) {
   unitnos_procotol_send_command1(unitnos_process_get_fd(counter->process, "w"),
-                                 UNITNOS_COUNTER_COMMAND_ADD_NEW_PATH, "%s",
+                                 UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE, "%s",
                                  path);
-}
-void unitnos_counter_list_paths(unitnos_counter *counter) {
-  unitnos_procotol_send_command(unitnos_process_get_fd(counter->process, "w"),
-                                UNITNOS_COUNTER_COMMAND_LIST_PATHS);
 }
 
 void unitnos_counter_process(unitnos_counter *counter) {

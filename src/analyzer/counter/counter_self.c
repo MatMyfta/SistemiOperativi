@@ -1,6 +1,5 @@
 #include "../p/p.h"
 #include "counter.h"
-#include "path.h"
 
 #define LOG_TAG "counter"
 #include "../../logger.h"
@@ -20,21 +19,14 @@ struct counter_state {
   list *p_list;
   unsigned int n;
   unsigned int m;
-  /**
-   * Dictionary that uses path to either directory or file as keys and an array
-   * of paths to files as values.
-   */
-  unitnos_dictionary *path_files_map;
 };
 
 /*******************************************************************************
  * Private functions declarations
  *******************************************************************************/
-static void util_set_destroy(void *set, void *user_data);
 static void set_n(struct counter_state *state);
 static void set_m(struct counter_state *state);
-static void add_new_path(struct counter_state *state, const char *new_path);
-static void list_paths(struct counter_state *state);
+static void add_new_file(struct counter_state *state, const char *new_file);
 
 /*******************************************************************************
  * Public functions implementation
@@ -46,9 +38,6 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
 
   struct counter_state state = {0};
   state.p_list = list_create(sizeof(unitnos_p *));
-  state.path_files_map = unitnos_dictionary_create(
-      unitnos_container_util_strcmp, unitnos_container_util_free,
-      util_set_destroy, NULL);
 
   char *message = NULL;
   size_t message_size = 0;
@@ -76,13 +65,9 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
         set_m(&state);
       }
 
-      if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_ADD_NEW_PATH)) {
-        log_verbose("Received path: %s", command.value);
-        add_new_path(&state, command.value);
-      }
-
-      if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_LIST_PATHS)) {
-        list_paths(&state);
+      if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE)) {
+        log_verbose("Received file: %s", command.value);
+        add_new_file(&state, command.value);
       }
     } else if (feof(fin)) {
       log_debug("Input pipe closed. Terminate");
@@ -96,10 +81,6 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
 /*******************************************************************************
  * Private functions implementation
  *******************************************************************************/
-static void util_set_destroy(void *set, void *user_data) {
-  unitnos_set_destroy((unitnos_set *)set);
-}
-
 static void set_n(struct counter_state *state) {
   int p_cnt_diff = state->n - list_size(state->p_list);
   unitnos_p *p;
@@ -136,57 +117,4 @@ static void set_m(struct counter_state *state) {
   }
 }
 
-static void add_new_path(struct counter_state *state, const char *new_path) {
-  // normalize path
-  char *normalized_path = realpath(new_path, NULL);
-  if (!normalized_path) {
-    log_error("Invalid path \"%s\": %s", new_path, strerror(errno));
-    return;
-  }
-  if (unitnos_dictionary_contains(state->path_files_map, normalized_path)) {
-    log_info("Path already exists");
-    free(normalized_path);
-    return;
-  }
-
-  unitnos_set *paths_set = unitnos_unpack_path(normalized_path);
-  if (paths_set) {
-    log_info("The new added path contains %lu files",
-             unitnos_set_size(paths_set));
-    unitnos_dictionary_insert(state->path_files_map, normalized_path,
-                              paths_set);
-  }
-}
-
-struct list_file_paths_callback_context {
-  const char *directory_path;
-  size_t index;
-  size_t size;
-};
-static bool list_file_paths_callback(void *value, void *user_data) {
-  struct list_file_paths_callback_context *context =
-      (struct list_file_paths_callback_context *)user_data;
-  const char *file_path = (const char *)value;
-  if (context->index == context->size - 1) {
-    printf("└");
-  } else {
-    printf("├");
-  }
-  printf("── %s\n", file_path + strlen(context->directory_path) + 1);
-  context->index++;
-  return false;
-}
-static bool list_paths_callback(void *key, void *value, void *user_data) {
-  const char *path = (const char *)key;
-  unitnos_set *file_paths_set = (unitnos_set *)value;
-  printf("Path: %s\n", path);
-  struct list_file_paths_callback_context context;
-  context.directory_path = path;
-  context.index = 0;
-  context.size = unitnos_set_size(file_paths_set);
-  unitnos_set_foreach(file_paths_set, list_file_paths_callback, &context);
-  return false;
-}
-static void list_paths(struct counter_state *state) {
-  unitnos_dictionary_foreach(state->path_files_map, list_paths_callback, NULL);
-}
+static void add_new_file(struct counter_state *state, const char *new_path) {}
