@@ -2,6 +2,7 @@
 
 #define LOG_TAG "counter_parent"
 #include "../../logger.h"
+#include "../../protocol.h"
 #include "../../utils.h"
 
 #include <assert.h>
@@ -12,6 +13,7 @@
 
 struct unitnos_counter {
   unitnos_process *process;
+  FILE *fin;
 };
 
 unitnos_counter *unitnos_counter_create(void) {
@@ -23,6 +25,7 @@ unitnos_counter *unitnos_counter_create(void) {
   } else {
     unitnos_counter *counter = malloc(sizeof(unitnos_counter));
     counter->process = process;
+    counter->fin = fdopen(unitnos_process_get_fd(process, "r"), "r");
     return counter;
   }
 }
@@ -30,16 +33,34 @@ void unitnos_counter_delete(unitnos_counter *counter) {
   unitnos_process_close(counter->process);
   free(counter);
 }
-void unitnos_counter_set(unitnos_counter *counter, uint16_t n, uint16_t m,
-                         char *filev[]) {
-  int fd = unitnos_process_get_fd(counter->process, "w");
-  char buf[] = "Hello World";
-  write(fd, buf, strlen(buf));
+
+void unitnos_counter_set_n(unitnos_counter *counter, unsigned int n) {
+  unitnos_procotol_send_command1(unitnos_process_get_fd(counter->process, "w"),
+                                 UNITNOS_COUNTER_COMMAND_SET_N, "%u", n);
+}
+void unitnos_counter_set_m(unitnos_counter *counter, unsigned int m) {
+  unitnos_procotol_send_command1(unitnos_process_get_fd(counter->process, "w"),
+                                 UNITNOS_COUNTER_COMMAND_SET_M, "%u", m);
+}
+void unitnos_counter_add_new_path(unitnos_counter *counter, const char *path) {
+  unitnos_procotol_send_command1(unitnos_process_get_fd(counter->process, "w"),
+                                 UNITNOS_COUNTER_COMMAND_ADD_NEW_PATH, "%s",
+                                 path);
+}
+void unitnos_counter_list_paths(unitnos_counter *counter) {
+  unitnos_procotol_send_command(unitnos_process_get_fd(counter->process, "w"),
+                                UNITNOS_COUNTER_COMMAND_LIST_PATHS);
+}
+void unitnos_counter_status_panel(unitnos_counter *counter) {
+  unitnos_procotol_send_command(unitnos_process_get_fd(counter->process, "w"),
+                                UNITNOS_COUNTER_COMMAND_STATUS_PANEL);
 }
 
-void unitnos_counter_read(unitnos_counter *counter) {
-  int fd = unitnos_process_get_fd(counter->process, "r");
-  char buf[30];
-  int received = read(fd, buf, 30);
-  log_debug("Received %s", buf);
+void unitnos_counter_process(unitnos_counter *counter) {
+  char *message = NULL;
+  size_t message_size = 0;
+  while (getline(&message, &message_size, counter->fin) > 0) {
+    log_verbose("Received: %s", message);
+  }
+  free(message);
 }

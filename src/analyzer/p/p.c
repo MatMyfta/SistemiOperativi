@@ -4,6 +4,7 @@
 #include "../../utils.h"
 #define LOG_TAG "p_parent"
 #include "../../logger.h"
+#include "../../protocol.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -19,7 +20,7 @@ unitnos_p *unitnos_p_create(void) {
   if (!process) {
     return NULL;
   } else {
-    unitnos_p *p = malloc(sizeof(unitnos_p)); // Lijun: tu riportavi "p" e ho pensato fosse una svista
+    unitnos_p *p = malloc(sizeof(unitnos_p));
     p->process = process;
     return p;
   }
@@ -29,10 +30,22 @@ void unitnos_p_destroy(unitnos_p *p) {
   free(p);
 }
 
-void unitnos_p_set(unitnos_p *p, uint16_t m, char *filev[]) {
-  int fd = unitnos_process_get_fd(p->process, "w");
-  char buf[] = "Hello World";
-  write(fd, buf, strlen(buf));
+pid_t unitnos_p_get_pid(unitnos_p *p){
+  return unitnos_process_get_pid(p->process);
+}
+
+void unitnos_p_status(unitnos_p *p){
+  unitnos_procotol_send_command(unitnos_process_get_fd(p->process, "w"),
+                                 UNITNOS_P_COMMAND_STATUS);
+}
+
+void unitnos_p_set_m(unitnos_p *p, unsigned int m) {
+  unitnos_procotol_send_command1(unitnos_process_get_fd(p->process, "w"),
+                                 UNITNOS_P_COMMAND_SET_M, "%u", m);
+}
+void unitnos_p_add_new_file(unitnos_p *p, const char *file) {
+  unitnos_procotol_send_command1(unitnos_process_get_fd(p->process, "w"),
+                                 UNITNOS_P_COMMAND_ADD_NEW_FILE, "%s", file);
 }
 void unitnos_p_read(unitnos_p *p) {
   int fd = unitnos_process_get_fd(p->process, "r");
