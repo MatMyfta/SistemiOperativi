@@ -95,8 +95,7 @@ static struct {
                 UNITNOS_LOGGER_LOG_FMT_PROCESS_INFO,
             [UNITNOS_LOGGER_LOG_LVL_VERBOSE] =
                 UNITNOS_LOGGER_LOG_FMT_LVL | UNITNOS_LOGGER_LOG_FMT_TAG |
-                UNITNOS_LOGGER_LOG_FMT_PROCESS_INFO |
-                UNITNOS_LOGGER_LOG_FMT_TIME,
+                UNITNOS_LOGGER_LOG_FMT_PROCESS_INFO,
         },
 };
 
