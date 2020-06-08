@@ -162,7 +162,7 @@ static void set_m(struct p_state *state, unsigned int m) {
     while (q_cnt_diff--) {
       q = unitnos_q_create();
       if (q != NULL) {
-        unitnos_list_push_back(state->q_list, &q);
+        unitnos_list_push_back(state->q_list, q);
       }
     }
   } else if (q_cnt_diff < 0) {
