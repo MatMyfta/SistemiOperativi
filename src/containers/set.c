@@ -39,3 +39,12 @@ bool unitnos_set_contains(unitnos_set *set, const void *value) {
 void *unitnos_set_lookup(unitnos_set *set, const void *value) {
   return unitnos_tree_lookup((unitnos_tree *)set, value);
 }
+void *unitnos_set_first(unitnos_set *set) {
+  return unitnos_tree_first((unitnos_tree *)set);
+}
+void *unitnos_set_max(unitnos_set *set) {
+  return unitnos_tree_max((unitnos_tree *)set);
+}
+void *unitnos_set_min(unitnos_set *set) {
+  return unitnos_tree_min((unitnos_tree *)set);
+}

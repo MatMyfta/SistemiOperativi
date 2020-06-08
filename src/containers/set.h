@@ -82,6 +82,25 @@ bool unitnos_set_contains(unitnos_set *set, const void *value);
  */
 void *unitnos_set_lookup(unitnos_set *set, const void *value);
 
+/**
+ * Get the first value in the set
+ *
+ * \returns the first value, if any
+ */
+void *unitnos_set_first(unitnos_set *set);
+/**
+ * Get the highest value in the set
+ *
+ * \returns the highest value, if any
+ */
+void *unitnos_set_max(unitnos_set *set);
+/**
+ * Get the lowest value in the set
+ *
+ * \returns the lowest value, if any
+ */
+void *unitnos_set_min(unitnos_set *set);
+
 #ifdef __cplusplus
 }
 #endif

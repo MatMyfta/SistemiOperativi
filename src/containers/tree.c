@@ -195,6 +195,12 @@ void *unitnos_tree_min(unitnos_tree *tree) {
   }
   return NULL;
 }
+void *unitnos_tree_first(unitnos_tree *tree) {
+  if (tree->root) {
+    return tree->root->value;
+  }
+  return NULL;
+}
 /*******************************************************************************
  * Private functions definitions
  *******************************************************************************/

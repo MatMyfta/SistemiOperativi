@@ -114,6 +114,13 @@ void *unitnos_dictionary_min(unitnos_dictionary *dictionary) {
   }
   return NULL;
 }
+void *unitnos_dictionary_first(unitnos_dictionary *dictionary) {
+  struct unitnos_dictionary_node *node = unitnos_tree_first(dictionary->tree);
+  if (node) {
+    return node->key;
+  }
+  return NULL;
+}
 
 /*******************************************************************************
  * Private functions implementation

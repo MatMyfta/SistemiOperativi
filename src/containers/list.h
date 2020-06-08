@@ -18,13 +18,13 @@ extern "C" {
 
 typedef struct unitnos_list unitnos_list;
 typedef struct unitnos_list_node unitnos_list_node;
-typedef bool (*unitnos_list_transverse_func)(void *value, void *user_data);
 /**
  * Specifies the type of function passed to #unitnos_list_foreach(). It is
  * passed the value of each item present in the list, together with the
  * optional user_data parameter passed to #unitnos_list_foreach(). If the
  * function returns true, the traversal is stopped.
  */
+typedef bool (*unitnos_list_transverse_func)(void *value, void *user_data);
 
 /**
  * Create a list

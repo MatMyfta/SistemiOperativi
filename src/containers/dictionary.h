@@ -134,6 +134,12 @@ void unitnos_dictionary_foreach(unitnos_dictionary *dictionary,
 size_t unitnos_dictionary_size(unitnos_dictionary *dictionary);
 
 /**
+ * Get the first key in the dictionary
+ *
+ * \returns the first key, if any
+ */
+void *unitnos_dictionary_first(unitnos_dictionary *dictionary);
+/**
  * Get the key with the highest value in the dictionary
  *
  * \returns the highest key, if any
