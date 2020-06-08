@@ -148,7 +148,7 @@ static bool update_p_files(void *key, void *value, void *user_data) {
   size_t files_cnt = unitnos_set_size(file_set);
 
   size_t allowed_files_cnt = context->files_each_p;
-  if (files_cnt >= allowed_files_cnt &&
+  if (files_cnt < allowed_files_cnt + 1 &&
       context->allowed_p_with_one_more_file > 0) {
     --context->allowed_p_with_one_more_file;
     ++allowed_files_cnt;
