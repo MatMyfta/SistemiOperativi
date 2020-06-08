@@ -43,8 +43,8 @@ unitnos_set *unitnos_unpack_path(const char *path) {
     return NULL;
   }
 
-  unitnos_set *set = unitnos_set_create(unitnos_container_util_strcmp,
-                                        NULL, NULL);
+  unitnos_set *set =
+      unitnos_set_create(unitnos_container_util_strcmp, NULL, NULL);
 
   char *file_path_buf = NULL;
   size_t file_path_buf_size = 0;

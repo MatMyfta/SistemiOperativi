@@ -66,7 +66,7 @@ static bool send_file(void *value, void *user_data) {
   return false;
 }
 void unitnos_counter_add_new_files_batch(unitnos_counter *counter,
-                                        unitnos_set *files) {
+                                         unitnos_set *files) {
   struct add_new_file_batch_context context;
   context.size = unitnos_set_size(files);
   context.index = 0;

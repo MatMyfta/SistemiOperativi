@@ -21,7 +21,7 @@ unitnos_counter *unitnos_counter_create(void);
 void unitnos_counter_set_n(unitnos_counter *counter, unsigned int n);
 void unitnos_counter_set_m(unitnos_counter *counter, unsigned int m);
 void unitnos_counter_add_new_files_batch(unitnos_counter *counter,
-                                        unitnos_set *files);
+                                         unitnos_set *files);
 /**
  * Process any unread messages in the pipe
  */
