@@ -42,10 +42,37 @@ void unitnos_counter_set_m(unitnos_counter *counter, unsigned int m) {
   unitnos_procotol_send_command1(unitnos_process_get_fd(counter->process, "w"),
                                  UNITNOS_COUNTER_COMMAND_SET_M, "%u", m);
 }
-void unitnos_counter_add_new_file(unitnos_counter *counter, const char *path) {
-  unitnos_procotol_send_command1(unitnos_process_get_fd(counter->process, "w"),
-                                 UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE, "%s",
-                                 path);
+
+struct add_new_file_batch_context {
+  unitnos_counter *counter;
+  size_t index;
+  size_t size;
+};
+static bool send_file(void *value, void *user_data) {
+  struct add_new_file_batch_context *context =
+      (struct add_new_file_batch_context *)user_data;
+  const char *file = value;
+
+  if (context->index == context->size - 1) {
+    unitnos_procotol_send_command1(
+        unitnos_process_get_fd(context->counter->process, "w"),
+        UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE_BATCH_FINISH, "%s", file);
+  } else {
+    unitnos_procotol_send_command1(
+        unitnos_process_get_fd(context->counter->process, "w"),
+        UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE_BATCH, "%s", file);
+  }
+  ++context->index;
+  return false;
+}
+void unitnos_counter_add_new_files_batch(unitnos_counter *counter,
+                                        unitnos_set *files) {
+  struct add_new_file_batch_context context;
+  context.size = unitnos_set_size(files);
+  context.index = 0;
+  context.counter = counter;
+  assert(context.size > 0);
+  unitnos_set_foreach(files, send_file, &context);
 }
 
 void unitnos_counter_process(unitnos_counter *counter) {

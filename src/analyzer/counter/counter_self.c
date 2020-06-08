@@ -40,7 +40,10 @@ static void dict_key_p_destroy(void *p, void *user_data);
 static void dict_value_file_set_destroy(void *file_set, void *user_data);
 static void set_n(struct counter_state *state, unsigned int n);
 static void set_m(struct counter_state *state, unsigned int m);
-static void add_new_file(struct counter_state *state, const char *new_file);
+static void add_new_file_batch(struct counter_state *state,
+                               const char *new_file);
+static void add_new_file_batch_finish(struct counter_state *state,
+                                      const char *new_file);
 
 /*******************************************************************************
  * Public functions implementation
@@ -82,9 +85,16 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
         set_m(&state, m);
       }
 
-      if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE)) {
+      if (!strcmp(command.command,
+                  UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE_BATCH)) {
         log_verbose("Received file: %s", command.value);
-        add_new_file(&state, command.value);
+        add_new_file_batch(&state, command.value);
+      }
+
+      if (!strcmp(command.command,
+                  UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE_BATCH_FINISH)) {
+        log_verbose("Received file: %s", command.value);
+        add_new_file_batch_finish(&state, command.value);
       }
     } else if (feof(fin)) {
       log_debug("Input pipe closed. Terminate");
@@ -230,13 +240,19 @@ static void set_n(struct counter_state *state, unsigned int n) {
   update_file_assignment(state);
 }
 
-static void add_new_file(struct counter_state *state, const char *new_file) {
+static void add_new_file_batch(struct counter_state *state,
+                               const char *new_file) {
   state->files_cnt++;
 
   char *str = malloc(strlen(new_file) + 1);
   strcpy(str, new_file);
 
   unitnos_list_push_back(state->unassigned_files, str);
+}
+
+static void add_new_file_batch_finish(struct counter_state *state,
+                                      const char *new_file) {
+  add_new_file_batch(state, new_file);
   update_file_assignment(state);
 }
 
