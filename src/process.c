@@ -160,5 +160,5 @@ static bool is_pipe_valid(char *pipe_fd) {
 
 static bool is_pipe(int fd) {
   return fileno(stdin) != fd && fileno(stdout) != fd &&
-    fcntl(fd, F_GETFD) != -1;
+         fcntl(fd, F_GETFD) != -1;
 }

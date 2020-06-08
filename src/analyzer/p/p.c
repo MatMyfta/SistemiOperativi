@@ -32,7 +32,12 @@ void unitnos_p_destroy(unitnos_p *p) {
   unitnos_process_close(p->process);
   free(p);
 }
-
+pid_t unitnos_p_get_pid(unitnos_p *p) {
+  return unitnos_process_get_pid(p->process);
+}
+void unitnos_p_status(unitnos_p *p) {
+  unitnos_procotol_send_command1(p->process, UNITNOS_P_COMMAND_STATUS);
+}
 void unitnos_p_set_m(unitnos_p *p, unsigned int m) {
   unitnos_procotol_send_command_with_data1(p->process, UNITNOS_P_COMMAND_SET_M,
                                            "%u", m);

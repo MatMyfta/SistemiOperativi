@@ -59,6 +59,10 @@ static void process_q(struct p_state *state);
  * Terminate all processes "q"
  */
 static void terminate_q(struct p_state *state);
+/**
+ * Print status of each child process "q"
+ */
+static void q_status(struct p_state *state);
 
 /*******************************************************************************
  * Public functions implementation
@@ -115,6 +119,10 @@ int unitnos_p_self_main(int in_pipe, int output_pipe) {
       if (!strcmp(command.command, UNITNOS_P_COMMAND_REMOVE_FILE)) {
         log_verbose("Received file: %s", command.value);
         remove_file(&state, command.value);
+      }
+
+      if (!strcmp(command.command, UNITNOS_P_COMMAND_STATUS)) {
+        q_status(&state);
       }
 
       if (!strcmp(command.command, UNITNOS_P_COMMAND_CLOSE)) {
@@ -324,4 +332,19 @@ static bool remove_foreach_q(void *value, void *user_data) {
 static void remove_file(struct p_state *state, const char *removed_file) {
   unitnos_dictionary_remove(state->file_statistics_dict, removed_file);
   unitnos_list_foreach(state->q_list, remove_foreach_q, (void *)removed_file);
+}
+
+/*******************************************************************************
+ * q_status and helpers
+ *******************************************************************************/
+static bool status_foreach_q(void *value, void *user_data) {
+  struct p_state *state = (struct p_state *)user_data;
+  unitnos_q *q = (unitnos_q *)value;
+  printf("\t\t\tQ PID %u, created by P PID %u\n", unitnos_q_get_pid(q),
+         getpid());
+  return false;
+}
+
+static void q_status(struct p_state *state) {
+  unitnos_list_foreach(state->q_list, status_foreach_q, state);
 }

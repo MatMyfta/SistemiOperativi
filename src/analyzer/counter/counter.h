@@ -10,10 +10,11 @@ extern "C" {
 
 #define UNITNOS_COUNTER_COMMAND_SET_N "set_n"
 #define UNITNOS_COUNTER_COMMAND_SET_M "set_m"
-#define UNITNOS_COUNTER_COMMAND_CLOSE "close"
 #define UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE_BATCH "add_new_file_batch"
 #define UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE_BATCH_FINISH                      \
   "add_new_file_batch_finish"
+#define UNITNOS_COUNTER_COMMAND_CLOSE "close"
+#define UNITNOS_COUNTER_COMMAND_STATUS_PANEL "status_panel"
 
 #define UNITNOS_COUNTER_SELF_COMMAND_SEND_STATISTICS_FILE "send_statistics_file"
 #define UNITNOS_COUNTER_SELF_COMMAND_SEND_STATISTICS_CONTENT                   \
@@ -24,6 +25,7 @@ extern "C" {
  *******************************************************************************/
 typedef struct unitnos_counter unitnos_counter;
 unitnos_counter *unitnos_counter_create(void);
+void unitnos_counter_status_panel(unitnos_counter *counter);
 void unitnos_counter_set_n(unitnos_counter *counter, unsigned int n);
 void unitnos_counter_set_m(unitnos_counter *counter, unsigned int m);
 void unitnos_counter_add_new_files_batch(unitnos_counter *counter,

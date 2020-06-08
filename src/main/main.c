@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 unitnos_analyzer *g_analyzer;
 
@@ -24,6 +25,7 @@ static int set_n_command(int argc, const char *argv[]);
 static int set_m_command(int argc, const char *argv[]);
 static int add_new_path_command(int argc, const char *argv[]);
 static int list_paths_command(int argc, const char *argv[]);
+static int status_panel_command(int argc, const char *argv[]);
 
 struct command g_commands[] = {
     {
@@ -51,6 +53,11 @@ struct command g_commands[] = {
         .help = "Update number of process \"q\" for each process \"p\". Usage: "
                 "set_m <m>",
         .function = set_m_command,
+    },
+    {
+        .name = UNITNOS_ANALYZER_COMMAND_STATUS_PANEL,
+        .help = "Overview on the active processes. Usage: status_panel",
+        .function = status_panel_command,
     },
 };
 
@@ -228,5 +235,15 @@ static int set_m_command(int argc, const char *argv[]) {
     log_error("Invalid parameter: not an unsigned integer");
     return -1;
   }
+  return 0;
+}
+
+static int status_panel_command(int argc, const char *argv[]) {
+  if (argc != 1) {
+    log_error("Usage: status_panel");
+    return -1;
+  }
+  printf("Main at PID %u\n", getpid());
+  unitnos_analyzer_status_panel(g_analyzer);
   return 0;
 }

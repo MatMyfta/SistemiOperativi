@@ -10,6 +10,7 @@ extern "C" {
 #define UNITNOS_ANALYZER_COMMAND_ADD_NEW_PATH "add_new_path"
 #define UNITNOS_ANALYZER_COMMAND_LIST_PATHS "list_paths"
 #define UNITNOS_ANALYZER_COMMAND_CLOSE "close"
+#define UNITNOS_ANALYZER_COMMAND_STATUS_PANEL "status_panel"
 
 /*******************************************************************************
  * API for parent process
@@ -21,6 +22,7 @@ void unitnos_analyzer_set_m(unitnos_analyzer *analyzer, unsigned int m);
 void unitnos_analyzer_add_new_path(unitnos_analyzer *analyzer,
                                    const char *path);
 void unitnos_analyzer_list_paths(unitnos_analyzer *analyzer);
+void unitnos_analyzer_status_panel(unitnos_analyzer *analyzer);
 /**
  * Process any unread messages in the pipe
  */
