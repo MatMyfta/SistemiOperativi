@@ -29,7 +29,7 @@ enum unitnos_statistics_type {
 
 struct unitnos_char_count_statistics {
   // one counter for each extended-ASCII character
-  uint32_t percentages[255];
+  uint32_t counts[255];
 };
 struct unitnos_char_percentage_statistics {
   // one percentage for each extended-ASCII character
