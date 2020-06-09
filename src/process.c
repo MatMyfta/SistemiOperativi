@@ -93,7 +93,7 @@ unitnos_process *unitnos_process_open(const char *path, char *const *argv) {
     return NULL;
   }
 
-  unitnos_process *process = malloc(sizeof(unitnos_process));
+  unitnos_process *process = unitnos_malloc(sizeof(unitnos_process));
   process->pid = pid;
   process->pipe_in = pico[0];
   process->pipe_out = poci[1];

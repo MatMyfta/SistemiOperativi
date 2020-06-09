@@ -17,4 +17,5 @@ target_sources(containers-test
 target_link_libraries(containers-test
   PRIVATE
   containers
+  common
   )

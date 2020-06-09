@@ -49,6 +49,7 @@ int unitnos_set_blocking(int fd);
  */
 ssize_t unitnos_getline(char **line, size_t *size, int fd);
 void *unitnos_realloc(void *ptr, size_t new_size);
+void *unitnos_malloc(size_t size);
 
 #ifdef __cplusplus
 }

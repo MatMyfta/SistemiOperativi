@@ -6,6 +6,8 @@
 
 #include "list.h"
 
+#include "../utils.h"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,7 +37,7 @@ static void unitnos_list_remove_node(unitnos_list *list,
  *******************************************************************************/
 unitnos_list *unitnos_list_create(unitnos_destroy_nodify value_destroy_func,
                                   void *user_data) {
-  unitnos_list *list = malloc(sizeof(struct unitnos_list));
+  unitnos_list *list = unitnos_malloc(sizeof(struct unitnos_list));
   list->head = list->tail = NULL;
   list->size = 0;
   list->value_destroy_func = value_destroy_func;
@@ -53,7 +55,7 @@ void unitnos_list_destroy(unitnos_list *list) {
 
 void *unitnos_list_back(unitnos_list *list) { return list->tail->data; }
 void unitnos_list_push_back(unitnos_list *list, void *data) {
-  unitnos_list_node *node = malloc(sizeof(struct unitnos_list_node));
+  unitnos_list_node *node = unitnos_malloc(sizeof(struct unitnos_list_node));
   node->next = NULL;
   node->prev = NULL;
   node->data = data;

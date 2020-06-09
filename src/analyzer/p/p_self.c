@@ -317,10 +317,10 @@ static bool send_new_path(void *value, void *user_data) {
   return false;
 }
 static void add_new_file(struct p_state *state, const char *new_file) {
-  char *str = malloc(strlen(new_file) + 1);
+  char *str = unitnos_malloc(strlen(new_file) + 1);
   strcpy(str, new_file);
 
-  struct file_statistics *stat = malloc(sizeof(struct file_statistics));
+  struct file_statistics *stat = unitnos_malloc(sizeof(struct file_statistics));
   memset(stat, 0, sizeof(struct file_statistics));
   stat->missing = state->m;
 

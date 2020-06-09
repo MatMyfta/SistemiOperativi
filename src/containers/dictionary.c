@@ -6,6 +6,7 @@
 #include "dictionary.h"
 
 #include "tree.h"
+#include "../utils.h"
 
 /*******************************************************************************
  * Private structures definitions
@@ -42,7 +43,7 @@ unitnos_dictionary *unitnos_dictionary_create(
     unitnos_compare_func compare_func, unitnos_destroy_nodify key_destroy_func,
     unitnos_destroy_nodify value_destroy_func, void *user_data) {
   unitnos_dictionary *dict =
-      (unitnos_dictionary *)malloc(sizeof(unitnos_dictionary));
+      (unitnos_dictionary *)unitnos_malloc(sizeof(unitnos_dictionary));
   dict->tree = unitnos_tree_create(node_compare, node_destroy, dict);
   dict->compare_func = compare_func;
   dict->key_destroy_func = key_destroy_func;
@@ -57,7 +58,7 @@ void unitnos_dictionary_destroy(unitnos_dictionary *dict) {
 void unitnos_dictionary_insert(unitnos_dictionary *dictionary, void *key,
                                void *value) {
   struct unitnos_dictionary_node *node =
-      (struct unitnos_dictionary_node *)malloc(
+      (struct unitnos_dictionary_node *)unitnos_malloc(
           sizeof(struct unitnos_dictionary_node));
   node->key = key;
   node->value = value;

@@ -25,7 +25,7 @@ unitnos_counter *unitnos_counter_create(void) {
   if (!process) {
     return NULL;
   } else {
-    unitnos_counter *counter = malloc(sizeof(unitnos_counter));
+    unitnos_counter *counter = unitnos_malloc(sizeof(unitnos_counter));
     counter->process = process;
     counter->fin = fdopen(unitnos_process_get_fd(process, "r"), "r");
     return counter;

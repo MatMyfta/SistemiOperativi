@@ -23,7 +23,7 @@ unitnos_analyzer *unitnos_analyzer_create(void) {
   if (!process) {
     return NULL;
   } else {
-    unitnos_analyzer *analyzer = malloc(sizeof(unitnos_analyzer));
+    unitnos_analyzer *analyzer = unitnos_malloc(sizeof(unitnos_analyzer));
     analyzer->process = process;
     analyzer->fin = fdopen(unitnos_process_get_fd(process, "r"), "r");
     return analyzer;

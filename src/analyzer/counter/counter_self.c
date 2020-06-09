@@ -350,7 +350,7 @@ static void add_new_file_batch(struct counter_state *state,
                                const char *new_file) {
   state->files_cnt++;
 
-  char *str = malloc(strlen(new_file) + 1);
+  char *str = unitnos_malloc(strlen(new_file) + 1);
   strcpy(str, new_file);
 
   unitnos_list_push_back(state->unassigned_files, str);

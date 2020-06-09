@@ -22,7 +22,7 @@ unitnos_p *unitnos_p_create(void) {
   if (!process) {
     return NULL;
   } else {
-    unitnos_p *p = malloc(sizeof(unitnos_p));
+    unitnos_p *p = unitnos_malloc(sizeof(unitnos_p));
     p->process = process;
     return p;
   }

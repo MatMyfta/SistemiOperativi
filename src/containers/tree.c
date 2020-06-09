@@ -6,6 +6,8 @@
 
 #include "tree.h"
 
+#include "../utils.h"
+
 #include <assert.h>
 
 /*******************************************************************************
@@ -76,7 +78,7 @@ static bool foreach_rec(unitnos_tree *tree, unitnos_node *node,
 unitnos_tree *unitnos_tree_create(unitnos_compare_func compare_func,
                                   unitnos_destroy_nodify value_destroy_func,
                                   void *user_data) {
-  unitnos_tree *tree = (unitnos_tree *)malloc(sizeof(unitnos_tree));
+  unitnos_tree *tree = (unitnos_tree *)unitnos_malloc(sizeof(unitnos_tree));
   tree->root = NULL;
   tree->size = 0;
   tree->compare_func = compare_func;
@@ -104,7 +106,7 @@ void unitnos_tree_insert(unitnos_tree *tree, void *value) {
     // increment size
     tree->size++;
 
-    unitnos_node *new_node = (unitnos_node *)malloc(sizeof(unitnos_node));
+    unitnos_node *new_node = (unitnos_node *)unitnos_malloc(sizeof(unitnos_node));
     new_node->left = NULL;
     new_node->right = NULL;
     new_node->value = value;

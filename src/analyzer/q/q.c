@@ -24,7 +24,7 @@ unitnos_q *unitnos_q_create(void) {
   if (!process) {
     return NULL;
   } else {
-    unitnos_q *p = malloc(sizeof(unitnos_q));
+    unitnos_q *p = unitnos_malloc(sizeof(unitnos_q));
     p->process = process;
     return p;
   }

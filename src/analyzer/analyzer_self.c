@@ -175,7 +175,7 @@ static void on_new_statistics(unitnos_counter *counter, const char *file,
   struct analyzer_state *state = (struct analyzer_state *)user_data;
 
   struct unitnos_char_count_statistics *stat =
-      malloc(sizeof(struct unitnos_char_count_statistics));
+      unitnos_malloc(sizeof(struct unitnos_char_count_statistics));
   memcpy(stat, statistics, sizeof(struct unitnos_char_count_statistics));
 
   // find path associated with file

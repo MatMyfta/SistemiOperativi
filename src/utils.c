@@ -99,6 +99,15 @@ int unitnos_set_blocking(int fd) {
   return 0;
 }
 
+void *unitnos_malloc(size_t size) {
+  void *ptr = malloc(size);
+  if (ptr == NULL) {
+    log_error("Unable to allocate memory %s", strerror(errno));
+    exit(-1);
+  }
+  return ptr;
+}
+
 void *unitnos_realloc(void *ptr, size_t new_size) {
   void *new_ptr = realloc(ptr, new_size);
   if (new_ptr == NULL) {
@@ -113,7 +122,7 @@ void *unitnos_realloc(void *ptr, size_t new_size) {
 #define LINE_SIZE_GROW_RATE 1.5
 ssize_t unitnos_getline(char **line, size_t *size, int fd) {
   if (*line == NULL) {
-    *line = malloc(LINE_INIT_SIZE);
+    *line = unitnos_malloc(LINE_INIT_SIZE);
     *size = LINE_INIT_SIZE;
   }
 
