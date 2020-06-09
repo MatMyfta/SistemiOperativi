@@ -18,6 +18,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h> 
+
+#define unitnos_fifo "/tmp/unitnos_fifo"
+#define ack_end "ACK_END"
+#define MAX_SIZE_MESSAGE 100
 
 struct analyzer_state {
   unitnos_counter *counter;
@@ -43,6 +50,15 @@ static void list_paths(struct analyzer_state *state);
  * Process messages from child "counter" process_counter
  */
 static void process_counter(struct analyzer_state *state);
+
+/**
+ * Function for communication through FIFO with report
+ */
+static void command_global(struct unitnos_protocol_command command);
+static void command_path(struct unitnos_protocol_command command);
+static int send_message(char* message_to_send);
+static char* read_message(int size);
+static char* concat(const char *s1, const char *s2);
 
 /*******************************************************************************
  * Public functions implementation
@@ -77,8 +93,43 @@ int unitnos_analyzer_self_main(int in_pipe, int output_pipe) {
   size_t message_buf_size = 0;
   ssize_t message_len = 0;
 
+  int fd;
+  mkfifo(unitnos_fifo, 0666);
+  char received[MAX_SIZE_MESSAGE];
+  ssize_t nread;
+  fd = open(unitnos_fifo, O_RDONLY | O_NONBLOCK);
+
   while (1) {
     unitnos_procotol_wait();
+
+    /**
+     *lettura non bloccante su FIFO, se trova COMANDO avvia operazioni bloccanti
+     */
+    nread=read(fd, received, 80);
+    switch (nread) {
+      case -1: {
+        if (errno == EAGAIN) {
+          log_verbose("%s\n", "no message");
+          sleep(1);
+          break;
+        } else {
+          log_error("%s\n", "Error with reading");
+          exit(1);
+        }; break;
+      }
+      case 0: {
+        log_verbose("%s\n", "EOF reached");
+      }; break;
+      default: {
+        close(fd);
+        struct unitnos_protocol_command command = unitnos_protocol_parse(received);
+        if (strcmp(command.command,"global")==0)
+          command_global(command);
+        if (strcmp(command.command,"path")==0)
+          command_path(command);
+        fd = open(unitnos_fifo, O_RDONLY | O_NONBLOCK);
+      }; break;
+    }
 
     process_counter(&state);
 
@@ -276,4 +327,97 @@ static bool list_paths_callback(void *key, void *value, void *user_data) {
 }
 static void list_paths(struct analyzer_state *state) {
   unitnos_dictionary_foreach(state->statistics, list_paths_callback, NULL);
+}
+
+/**************************************
+ * Communication trough pipe and helpers
+ *************************************/
+static void command_global(struct unitnos_protocol_command command) {
+  // DA DEFINIRE LA STRINGA
+  send_message(concat("STATISTICA globale - type: ",command.value));
+}
+static void command_path(struct unitnos_protocol_command command) {
+    char* path = "prova_path.txt";
+    char* response;
+    log_verbose("%s\n", "Command_path requested");
+    int numero_path = 4, i = 0;
+    while ((i>=0) && (i<numero_path)) {
+        send_message(concat("STATISTICA per path:", path));
+        response = read_message(MAX_SIZE_MESSAGE);
+        if (response!=NULL) {
+            struct unitnos_protocol_command second_command = unitnos_protocol_parse(response);
+            if ((strcmp(second_command.command, "ack")==0) && (strcmp(second_command.value,"1")==0)) { //lazy evaluation
+                send_message(concat("VALORE STATISTICA", command.value));
+                response = read_message(MAX_SIZE_MESSAGE);
+                if (response!=NULL) {
+                    struct unitnos_protocol_command third_command = unitnos_protocol_parse(response);
+                    if ((strcmp(second_command.command, "ack")==0) && (strcmp(third_command.value,"1")==0)) //lazy evaluation
+                        i++;
+                    else {
+                        send_message(ack_end);
+                        i=-1;
+                    }
+                } else {
+                    send_message(ack_end);
+                    i=-1;
+                }
+            } else {
+                send_message(ack_end);
+                i=-1;
+            }
+        } else {
+            send_message(ack_end);
+            i=-1;
+        }
+    }
+    send_message(ack_end);
+}
+static int send_message(char *message_to_send) {
+    int fd, ret_value;
+    fd = open(unitnos_fifo, O_WRONLY);
+    if (fd==-1) {
+        log_error("Failed opening named pipe");
+        ret_value = 1;
+    } else {
+        if (write(fd, message_to_send, strlen(message_to_send)+1)==-1) {
+            log_error("Failed writing on named pipe");
+            ret_value = 1;
+        } else {
+            ret_value = 0;
+        }
+        close(fd);
+    }
+    return ret_value;
+}
+static char* read_message(int size) {
+    char* ret_value;
+    int fd;
+    ssize_t readed;
+    char *message_to_read = malloc(size +1);
+    fd = open(unitnos_fifo, O_RDONLY);
+    if (fd==-1) {
+        log_error("Failed opening named pipe");
+        free(message_to_read);
+        ret_value=NULL;
+    } else {
+        readed=read(fd, message_to_read, size +1);
+        if (readed==-1) {
+            log_error("Failed writing on named pipe");
+            free(message_to_read);
+            ret_value=NULL;
+        } else {
+            message_to_read[readed]='\0';
+            ret_value = message_to_read;
+        }
+        close(fd);
+    }
+    return ret_value;  
+}
+
+static char* concat(const char *s1, const char *s2)
+{
+    char *result = malloc(strlen(s1) + strlen(s2) + 1); // +1 for the null-terminator
+    strcpy(result, s1);
+    strcat(result, s2); 
+    return result;
 }
