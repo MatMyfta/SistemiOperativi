@@ -38,6 +38,10 @@ static void dict_value_dict_destroy(void *dict, void *user_data);
 
 static void add_new_path(struct analyzer_state *state, const char *new_path);
 static void list_paths(struct analyzer_state *state);
+/**
+ * Process messages from child "counter" process_counter
+ */
+static void process_counter(struct analyzer_state *state);
 
 /*******************************************************************************
  * Public functions implementation
@@ -75,6 +79,8 @@ int unitnos_analyzer_self_main(int in_pipe, int output_pipe) {
 
   while (1) {
     unitnos_procotol_wait();
+
+    process_counter(&state);
 
     if (getline(&message, &message_size, fin) >= 0) {
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);
@@ -124,6 +130,23 @@ static int dict_path_compare(const void *lhs, const void *rhs,
 }
 static void dict_value_dict_destroy(void *dict, void *user_data) {
   unitnos_dictionary_destroy(dict);
+}
+/**************************************
+ * process_counter and helpers
+ *************************************/
+static void on_new_statistics(unitnos_counter *counter, const char *file,
+                              struct unitnos_char_count_statistics *statistics,
+                              void *user_data) {
+  log_debug("Received statistics for file %s", file);
+  struct analyzer_state *state = (struct analyzer_state *)user_data;
+
+  /*struct file_statistics *stat =*/
+  /*unitnos_dictionary_lookup(state->file_statistics_dict, file);*/
+}
+static void process_counter(struct analyzer_state *state) {
+  struct unitnos_counter_event_callbacks cbs;
+  cbs.on_new_statistics = on_new_statistics;
+  unitnos_counter_process(state->counter, cbs, state);
 }
 /**************************************
  * add_new_path and helpers

@@ -194,7 +194,7 @@ static void on_new_statistics(unitnos_p *q, const char *file,
   unitnos_procotol_send_command_with_binary_data(
       state->output_pipe, getppid(),
       UNITNOS_COUNTER_SELF_COMMAND_SEND_STATISTICS_CONTENT, &statistics,
-      sizeof(statistics));
+      sizeof(struct unitnos_char_count_statistics));
 }
 static bool process_each_p(void *key, void *value, void *user_data) {
   unitnos_p *p = (unitnos_p *)key;

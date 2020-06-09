@@ -2,6 +2,7 @@
 #define UNITNOS_COUNTER_H_
 
 #include "../../containers/set.h"
+#include "../../statistics.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,11 +28,19 @@ void unitnos_counter_set_n(unitnos_counter *counter, unsigned int n);
 void unitnos_counter_set_m(unitnos_counter *counter, unsigned int m);
 void unitnos_counter_add_new_files_batch(unitnos_counter *counter,
                                          unitnos_set *files);
+void unitnos_counter_delete(unitnos_counter *counter);
+
+struct unitnos_counter_event_callbacks {
+  void (*on_new_statistics)(unitnos_counter *p, const char *file,
+                            struct unitnos_char_count_statistics *statistics,
+                            void *user_data);
+};
 /**
  * Process any unread messages in the pipe
  */
-void unitnos_counter_process(unitnos_counter *counter);
-void unitnos_counter_delete(unitnos_counter *counter);
+void unitnos_counter_process(unitnos_counter *counter,
+                             struct unitnos_counter_event_callbacks cbs,
+                             void *user_data);
 
 /*******************************************************************************
  * API for the counter process

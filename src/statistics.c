@@ -11,8 +11,6 @@
 int unitnos_char_count_statistics_read(
     const char *command_name, struct unitnos_char_count_statistics *stat,
     int fd) {
-  log_debug("Fetching statistics");
-
   size_t stat_content_message_size =
       strlen(command_name) +
       // delimiter
@@ -27,9 +25,13 @@ int unitnos_char_count_statistics_read(
   while (cnt != stat_content_message_size) {
     ssize_t ret = read(fd, message_buf + cnt, stat_content_message_size - cnt);
     if (ret == -1) {
-      log_error("Unable to read statistics from fd %d: %s", fd,
-                strerror(errno));
-      return ret;
+      if (errno != EINTR) {
+        log_error("Unable to read statistics from fd %d: %s", fd,
+            strerror(errno));
+        return ret;
+      } else {
+        continue;
+      }
     }
     cnt += ret;
   }
