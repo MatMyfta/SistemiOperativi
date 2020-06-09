@@ -20,6 +20,7 @@ endfunction()
 
 add_subdirectory(containers)
 add_subdirectory(analyzer)
+add_subdirectory(report)
 add_subdirectory(main)
 
 add_library(common STATIC "")
