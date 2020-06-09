@@ -1,6 +1,21 @@
 #include "report.h"
 #include "../bool.h"
+
+#define LOG_TAG "report"
 #include "../logger.h"
+
+#include "../process.h"
+#include "../protocol.h"
+
+#include <assert.h>
+#include <fcntl.h>
+#include <limits.h> 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h> 
+#include <sys/types.h> 
+#include <unistd.h>
 
 struct command {
     const char *name;
@@ -8,179 +23,122 @@ struct command {
     int (*function)(int argc, const char *argv[]);
 };
 
-static void quit();
-static int help_command(int argc, const char *argv[]);
-static int send_request_command(int argc, const char *argv[]);
-static void command_ask_global(const char *type);
-static void command_ask_path(const char *type);
+/*******************************************************************************
+ * Private functions declarations
+ *******************************************************************************/
+static int independent_report_main(int argc, char **argv);
+static int child_report_main(int in_pipe, int output_pipe);
 
+/*
+ * Call command_ask_global for each type
+ * Call command_ask_path for each type
+ */
+static void command_ask_all();
+static void command_ask_all_path();
+static void command_ask_all_global();
+
+/*
+ * Not used but could be useful
+ * argv[0]: not used
+ * argv[1]: global or path
+ * argv[2]: type of statistic
+ */
+static int send_request_command(int argc, const char *argv[]);
+
+/*
+ * Ask for global statistic of one type
+ */
+static void command_ask_global(const char *type);
+
+/*
+ * Ask for each path statistic of one type
+ */
+static void command_ask_path(const char *type);
 static int send_ack(char* value);
 static bool is_ack_end(const char* str);
 static int send_message (char *message_to_send);
 static char* read_message();
-char* concat(const char *s1, const char *s2);
+static char* concat(const char *s1, const char *s2);
 
-struct command g_commands[] = {
-    {
-        .name = "help",
-        .help = "",
-        .function = help_command,
-    },
-    {
-    	.name = "full_print",
-    	.help = "Print all statistcs",
-    	.function = NULL,
-    },
-    {
-        .name = "partial_print",
-        .help = "Print only statistcs different from 0",
-        .function = NULL,
-    },  
-    {
-        .name = "send_request",
-        .help = "Ask to Analyzer for statistcs",
-        .function = send_request_command,
-    },
-    {
-    	.name = "quit",
-    	.help = "Quit",
-    	.function = NULL,
-    },
+int main(int argc, char *argv[]) {
+  if (unitnos_process_is_process(argc, argv)) {
+    return child_report_main(atoi(argv[1]), atoi(argv[2]));
+  } else {
+    return independent_report_main(argc, argv);
+  }
+}
 
-};
-
-/*******************************************************************************
- * Command parser
- *******************************************************************************/
-/**
- * Splits the given \p line into tokens, using whitespace as separator, and
- * fills them in the given \p *argv of size \p *n, automatically increasing its
- * size as if by realloc to fit all the tokens.
- * \p *argv may be null, in which case *n is ignored and this function allocates
- * the appropriate amount to space.
- *
- * \param [in,out] line a string with terminated with '\n\0'
- * \param [out] argc pointer to argv
- * \param [out] argv parsed argv
- * \param [in,out] n size of argv
- */
-static void parse(char *line, int *argc, const char ***argv, size_t *n);
-
-int main() 
-{
+static int independent_report_main(int argc, char** argv) {
+    log_debug("Report running in standalone mode");
     mkfifo(unitnos_fifo, 0666);
 
+    if (argc != 2) {
+        log_error("Usage: report <global || path || both>");
+        return -1;
+    }
 	int unitnos_report_records[MAXDIM];
 	unitnos_report_record_init(unitnos_report_records);
-	printf("Waiting for statistics input\n");
+	log_debug("Waiting for statistics input");
 
-	printf("Statistics found, now formatting\n");
+	log_debug("Statistics found, now formatting");
 	unitnos_report_record_fill(unitnos_report_records);
-	printf("Reported statistics:\n\n");
 
-	int total_char = unitnos_report_total_count(unitnos_report_records);
-
-    char *command = NULL;
-    size_t command_size = 0;
-
-    int command_argc = 0;
-    size_t command_argv_size = 0;
-    const char **command_argv = NULL;
-
-    while (1) {
-        printf("> ");
-        if (getline(&command, &command_size, stdin) >= 0) {
-            parse(command, &command_argc, &command_argv, &command_argv_size);
-            if (command_argc < 1) {
-               // invalid command
-                continue;
-            }
-            if (strcmp(g_commands[1].name, command_argv[0])==0) {
-            	unitnos_report_full_print(unitnos_report_records,total_char);
-            } else if (strcmp(g_commands[2].name, command_argv[0])==0) {
-            	unitnos_report_partial_print(unitnos_report_records, total_char);
-            } else if (strcmp(g_commands[4].name, command_argv[0])==0) {
-            	quit();
-            } else {
-	            size_t i;
-	            for (i = 0; i < sizeof(g_commands) / sizeof(g_commands[0]); ++i) {
-	                if (strcmp(g_commands[i].name, command_argv[0]) == 0) {
-	                    g_commands[i].function(command_argc, command_argv);
-	                    break;
-	                }
-	            }
-	            if (i == sizeof(g_commands) / sizeof(g_commands[0])) {
-	                printf("Unrecognized command \"%s\"\n", command_argv[0]);
-	            }
-	        }
-        } else {
-            if (feof(stdin)) {
-               printf("Main EOF. Terminate\n");
-               break;
-            }
-        }
+    if (strcmp(argv[1], "both")==0) {
+        command_ask_all();
+        // print all
+    } else if (strcmp(argv[1], "path")==0) {
+        command_ask_all_path();
+        // print all
+    } else if (strcmp(argv[1], "global")==0) {
+        command_ask_all_global();
+        //print all
+    } else {
+        log_error("Unrecognized command");
     }
+
+    
     return 0; 
 }
 
-/*******************************************************************************
- * Command parser
- *******************************************************************************/
-static void parse(char *line, int *argc, const char ***argv, size_t *n) {
-  *argc = 0;
-  if (*argv == NULL) {
-    *n = 0;
-  }
+static int child_report_main(int in_pipe, int output_pipe) {
+    log_debug("Report running in child mode");
 
-  {
-    size_t token_cnt = 1;
-    size_t i;
-    for (i = 0; line[i] != '\n'; ++i) {
-      if (line[i] == ' ') {
-        /*
-         * A white space doesn't necessarily imply another token (e.g. 'a
-         * b'), but a bit of memory wastage is acceptable. We just need to
-         * ensure that the upper bound is allocated and let strtok handle the
-         * nitty-gritty details of tokenization.
-         */
-        ++token_cnt;
-      }
+    FILE *fin = fdopen(in_pipe, "r");
+
+    int unitnos_report_records[MAXDIM];
+    unitnos_report_record_init(unitnos_report_records);
+    log_verbose("Waiting for statistics input");
+    log_verbose("Statistics found, now formatting");
+    unitnos_report_record_fill(unitnos_report_records);
+
+    int total_char = unitnos_report_total_count(unitnos_report_records);
+
+    char *message = NULL;
+    size_t message_size = 0;
+
+    while (1) {
+        if (getline(&message, &message_size, fin) >= 0) {
+            struct unitnos_protocol_command command = unitnos_protocol_parse(message);
+            log_verbose("Received command: %s", command.command);
+
+            if (!strcmp(command.command, "both_print")) {
+                command_ask_all_global();
+                // print all
+            }
+
+            if (!strcmp(command.command, "path_print")) {
+                command_ask_all_path();
+                // print all
+            }
+
+        } else if (feof(fin)) {
+            log_debug("Input pipe closed. Terminate");
+            break;
+        }
     }
-    if (token_cnt > *n) {
-      *argv = realloc(*argv, token_cnt * sizeof(const char *));
-    }
-    // set '\n' to '\0'
-    line[i] = '\0';
-  }
-
-  char *token = strtok(line, " ");
-  size_t i = 0;
-  for (; token; ++i) {
-    (*argv)[i] = token;
-    token = strtok(NULL, " ");
-  }
-  *argc = i;
-}
-
-/*******************************************************************************
- * Commands
- *******************************************************************************/
-static void quit() {
-	printf("%s\n", "Terminating report");
-	exit(0);
-}
-
-static int help_command(int argc, const char *argv[]) {
-  assert(strcmp(g_commands[0].name, "help") == 0);
-
-  printf("Available commands:\n\n");
-
-  size_t i;
-  for (i = 0; i < sizeof(g_commands) / sizeof(g_commands[0]); ++i) {
-    printf("%s: %s\n", g_commands[i].name, g_commands[i].help);
-  }
   return 0;
 }
+
 
 static int send_request_command(int argc, const char *argv[]) {
     if (argc != 3) {
@@ -196,7 +154,26 @@ static int send_request_command(int argc, const char *argv[]) {
             command_ask_path(argv[2]);
     }
     return 0;
-} 
+}
+
+static void command_ask_all() {
+    command_ask_all_path();
+    command_ask_all_global();
+}
+
+static void command_ask_all_path() {
+    command_ask_path("1");
+    command_ask_path("2");
+    command_ask_path("3");
+    command_ask_path("4");
+}
+
+static void command_ask_all_global() {
+    command_ask_global("1");
+    command_ask_global("2");
+    command_ask_global("3");
+    command_ask_global("4");
+}
 
 static void command_ask_global(const char *type) {
     int fd, readed, size=80;
