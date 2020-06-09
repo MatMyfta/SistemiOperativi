@@ -52,6 +52,7 @@ static void add_new_file_batch_finish(struct counter_state *state,
  * Process any message/commands from child processes "p"
  */
 static void process_p(struct counter_state *state);
+static void process_single_p(unitnos_p *p, struct counter_state *state);
 /**
  * Terminate all processes "p"
  */
@@ -216,10 +217,13 @@ static void on_new_statistics(unitnos_p *q, const char *file,
 static bool process_each_p(void *key, void *value, void *user_data) {
   unitnos_p *p = (unitnos_p *)key;
   struct counter_state *state = (struct counter_state *)user_data;
+  process_single_p(p, state);
+  return false;
+}
+static void process_single_p(unitnos_p *p, struct counter_state *state) {
   struct unitnos_p_event_callbacks cbs;
   cbs.on_new_statistics = on_new_statistics;
   unitnos_p_process(p, cbs, state);
-  return false;
 }
 static void process_p(struct counter_state *state) {
   unitnos_dictionary_foreach(state->p_to_files, process_each_p, state);
@@ -283,6 +287,7 @@ static bool update_p_files(void *key, void *value, void *user_data) {
       unitnos_list_pop_back(context->state->unassigned_files);
       unitnos_set_insert(file_set, unassigned_file);
       unitnos_p_add_new_file(p, unassigned_file);
+      process_single_p(p, context->state);
       ++files_cnt;
     }
   }
@@ -384,7 +389,8 @@ static void set_m(struct counter_state *state, unsigned int m) {
 static bool status_foreach_p(void *key, void *value, void *user_data) {
   struct counter_state *state = (struct counter_state *)user_data;
   unitnos_p *p = (unitnos_p *)key;
-  printf("\t\tP PID %u - #%i Q subprocesses:\n", unitnos_p_get_pid(p), state->m);
+  printf("\t\tP PID %u - #%i Q subprocesses:\n", unitnos_p_get_pid(p),
+         state->m);
   unitnos_p_status(p);
   usleep(50000);
   return false;

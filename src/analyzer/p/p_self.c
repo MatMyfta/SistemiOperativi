@@ -122,6 +122,7 @@ int unitnos_p_self_main(int in_pipe, int output_pipe) {
       if (!strcmp(command.command, UNITNOS_P_COMMAND_ADD_NEW_FILE)) {
         log_verbose("Received file: %s", command.value);
         add_new_file(&state, command.value);
+        process_q(&state);
       }
 
       if (!strcmp(command.command, UNITNOS_P_COMMAND_REMOVE_FILE)) {
