@@ -46,6 +46,7 @@ static void tree_link(unitnos_tree *tree, unitnos_node *parent,
  */
 static unitnos_node *tree_search(unitnos_tree *tree, const void *value);
 static unitnos_node *tree_min(unitnos_node *node);
+static unitnos_node *tree_max(unitnos_node *node);
 /**
  * Find the successor of the given node in the tree
  *
@@ -180,6 +181,26 @@ void *unitnos_tree_lookup(unitnos_tree *tree, const void *value) {
 bool unitnos_tree_contains(unitnos_tree *tree, const void *value) {
   return tree_search(tree, value) != NULL;
 }
+void *unitnos_tree_max(unitnos_tree *tree) {
+  struct unitnos_node *node = tree_max(tree->root);
+  if (node) {
+    return node->value;
+  }
+  return NULL;
+}
+void *unitnos_tree_min(unitnos_tree *tree) {
+  struct unitnos_node *node = tree_min(tree->root);
+  if (node) {
+    return node->value;
+  }
+  return NULL;
+}
+void *unitnos_tree_first(unitnos_tree *tree) {
+  if (tree->root) {
+    return tree->root->value;
+  }
+  return NULL;
+}
 /*******************************************************************************
  * Private functions definitions
  *******************************************************************************/
@@ -213,11 +234,23 @@ static unitnos_node *tree_search(unitnos_tree *tree, const void *value) {
 }
 
 static unitnos_node *tree_min(unitnos_node *node) {
-  unitnos_node *tmp = node;
-  while (tmp->left != NULL) {
-    tmp = tmp->left;
+  unitnos_node *curr = node;
+  unitnos_node *parent = NULL;
+  while (curr != NULL) {
+    parent = curr;
+    curr = curr->left;
   }
-  return tmp;
+  return parent;
+}
+
+static unitnos_node *tree_max(unitnos_node *node) {
+  unitnos_node *curr = node;
+  unitnos_node *parent = NULL;
+  while (curr != NULL) {
+    parent = curr;
+    curr = curr->right;
+  }
+  return parent;
 }
 
 static unitnos_node *node_successor(unitnos_tree *tree, unitnos_node *node) {

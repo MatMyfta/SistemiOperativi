@@ -25,6 +25,7 @@ add_subdirectory(main)
 add_library(common STATIC "")
 target_sources(common
   PRIVATE
+  statistics.c
   process.c
   logger.c
   utils.c

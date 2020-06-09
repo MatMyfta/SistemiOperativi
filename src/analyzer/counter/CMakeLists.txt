@@ -1,7 +1,6 @@
 add_executable(counter
   main.c
   counter_self.c
-  path.c
   )
 target_link_libraries(counter
   PRIVATE

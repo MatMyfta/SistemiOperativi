@@ -1,7 +1,7 @@
 #include "path.h"
 
-#define LOG_TAG "counter"
-#include "../../logger.h"
+#define LOG_TAG "analyzer"
+#include "../logger.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -43,8 +43,8 @@ unitnos_set *unitnos_unpack_path(const char *path) {
     return NULL;
   }
 
-  unitnos_set *set = unitnos_set_create(unitnos_container_util_strcmp,
-                                        unitnos_container_util_free, NULL);
+  unitnos_set *set =
+      unitnos_set_create(unitnos_container_util_strcmp, NULL, NULL);
 
   char *file_path_buf = NULL;
   size_t file_path_buf_size = 0;

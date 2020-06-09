@@ -97,6 +97,17 @@ bool unitnos_dictionary_contains(unitnos_dictionary *dictionary,
                                  const void *key);
 
 /**
+ * Gets the key in the dictionary that matches with the given key.
+ *
+ * \param [in] dictionary a dictionary
+ * \param [in] the key to look up
+ *
+ * \returns the matching key, or NULL if the key was not found
+ */
+void *unitnos_dictionary_key_lookup(unitnos_dictionary *dictionary,
+                                    const void *key);
+
+/**
  * Removes a key/value pair from a dictionary.
  *
  * \param [in] dictionary a dictionary
@@ -132,6 +143,25 @@ void unitnos_dictionary_foreach(unitnos_dictionary *dictionary,
  * Get the number of key&value pairs in the dictionary
  */
 size_t unitnos_dictionary_size(unitnos_dictionary *dictionary);
+
+/**
+ * Get the first key in the dictionary
+ *
+ * \returns the first key, if any
+ */
+void *unitnos_dictionary_first(unitnos_dictionary *dictionary);
+/**
+ * Get the key with the highest value in the dictionary
+ *
+ * \returns the highest key, if any
+ */
+void *unitnos_dictionary_max(unitnos_dictionary *dictionary);
+/**
+ * Get the key with the lowest value in the dictionary
+ *
+ * \returns the lowest value, if any
+ */
+void *unitnos_dictionary_min(unitnos_dictionary *dictionary);
 
 #ifdef __cplusplus
 }

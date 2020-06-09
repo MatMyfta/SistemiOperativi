@@ -81,12 +81,23 @@ unitnos_process *unitnos_process_open(const char *path, char *const *argv) {
 
   close(pico[1]);
   close(poci[0]);
-  {
-    unitnos_process *process = malloc(sizeof(unitnos_process));
-    process->pid = pid;
-    process->pipe_in = pico[0];
-    process->pipe_out = poci[1];
-    return process;
+  char c;
+  if (read(pico[0], &c, 1) != 1 || c != 'c') {
+    log_error("Failed child synchronization: %s", strerror(errno));
+    return NULL;
+  }
+
+  unitnos_process *process = malloc(sizeof(unitnos_process));
+  process->pid = pid;
+  process->pipe_in = pico[0];
+  process->pipe_out = poci[1];
+  return process;
+}
+
+void unitnos_process_init(int in_pipe, int out_pipe) {
+  if (write(out_pipe, "c", 1) == -1) {
+    log_error("Failed synchronization with parent: %s", strerror(errno));
+    exit(-1);
   }
 }
 
@@ -115,6 +126,8 @@ int unitnos_process_get_fd(unitnos_process *p, const char *mode) {
     return p->pipe_out;
   }
 }
+
+pid_t unitnos_process_get_pid(unitnos_process *p) { return p->pid; }
 
 static bool is_pipe_valid(char *pipe_fd) {
   char *tmp;

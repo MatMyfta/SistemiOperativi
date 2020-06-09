@@ -73,6 +73,17 @@ void *unitnos_dictionary_lookup(unitnos_dictionary *dictionary,
   }
   return NULL;
 }
+
+void *unitnos_dictionary_key_lookup(unitnos_dictionary *dictionary,
+                                    const void *key) {
+  struct unitnos_dictionary_node node;
+  node.key = (void *)key;
+  void *n = unitnos_tree_lookup(dictionary->tree, &node);
+  if (n) {
+    return ((struct unitnos_dictionary_node *)n)->key;
+  }
+  return NULL;
+}
 bool unitnos_dictionary_contains(unitnos_dictionary *dictionary,
                                  const void *key) {
   struct unitnos_dictionary_node node;
@@ -98,6 +109,28 @@ void unitnos_dictionary_foreach(unitnos_dictionary *dictionary,
     return func(node->key, node->value, user_data);
   }
   unitnos_tree_foreach(dictionary->tree, transverse, user_data);
+}
+
+void *unitnos_dictionary_max(unitnos_dictionary *dictionary) {
+  struct unitnos_dictionary_node *node = unitnos_tree_max(dictionary->tree);
+  if (node) {
+    return node->key;
+  }
+  return NULL;
+}
+void *unitnos_dictionary_min(unitnos_dictionary *dictionary) {
+  struct unitnos_dictionary_node *node = unitnos_tree_min(dictionary->tree);
+  if (node) {
+    return node->key;
+  }
+  return NULL;
+}
+void *unitnos_dictionary_first(unitnos_dictionary *dictionary) {
+  struct unitnos_dictionary_node *node = unitnos_tree_first(dictionary->tree);
+  if (node) {
+    return node->key;
+  }
+  return NULL;
 }
 
 /*******************************************************************************

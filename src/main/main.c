@@ -1,6 +1,7 @@
 #define LOG_TAG "main"
 #include "../analyzer/analyzer.h"
 #include "../logger.h"
+#include "../protocol.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -78,6 +79,11 @@ int main() {
   size_t command_argv_size = 0;
   const char **command_argv = NULL;
 
+  if (unitnos_procotol_init() == -1) {
+    log_error("Unable to initialize communication protocol");
+    exit(-1);
+  }
+
   g_analyzer = unitnos_analyzer_create();
   if (!g_analyzer) {
     log_error("Unable to create analyzer");
@@ -109,6 +115,8 @@ int main() {
       }
     }
   }
+
+  unitnos_analyzer_delete(g_analyzer);
   return 0;
 }
 
@@ -189,6 +197,10 @@ static int set_n_command(int argc, const char *argv[]) {
   char *tmp;
   unsigned long n = strtoul(argv[1], &tmp, 0);
   if (tmp != argv[1]) {
+    if (n == 0) {
+      log_error("Invalid parameter: n has to be greater than 0");
+      return -1;
+    }
     unitnos_analyzer_set_n(g_analyzer, n);
   } else {
     log_error("Invalid parameter: not an unsigned integer");
@@ -204,6 +216,10 @@ static int set_m_command(int argc, const char *argv[]) {
   char *tmp;
   unsigned long m = strtoul(argv[1], &tmp, 0);
   if (tmp != argv[1]) {
+    if (m == 0) {
+      log_error("Invalid parameter: m has to be greater than 0");
+      return -1;
+    }
     unitnos_analyzer_set_m(g_analyzer, m);
   } else {
     log_error("Invalid parameter: not an unsigned integer");

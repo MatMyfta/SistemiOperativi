@@ -7,6 +7,9 @@
 #ifndef UNITNOS_PROTOCOL_H_
 #define UNITNOS_PROTOCOL_H_
 
+#include "process.h"
+
+#include <signal.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -14,15 +17,27 @@
 extern "C" {
 #endif
 
-#define unitnos_procotol_send_command(fd, command)                             \
-  do {                                                                         \
-    char buf[strlen(command) + 1];                                             \
-    strcpy(buf, command);                                                      \
-    buf[sizeof(buf) - 1] = '\n';                                               \
-    write(fd, buf, sizeof(buf));                                               \
-  } while (0)
+#define UNITNOS_PROTOCOL_COMMAND_VALUE_DELIMITATOR ':'
 
-#define unitnos_procotol_send_command1(fd, command, fmt, args...)              \
+/**
+ * Setup SIGUSR1, call it before #unitnos_process_init
+ *
+ * \retval 0 success
+ * \retval -1 failure
+ */
+int unitnos_procotol_init();
+/**
+ * Wait for a SIGUSR1 signal
+ */
+void unitnos_procotol_wait();
+
+void unitnos_procotol_write(int fd, pid_t pid, void *buf, size_t size);
+void unitnos_procotol_send_command(int fd, pid_t pid, const char *command);
+void unitnos_procotol_send_command1(unitnos_process *process,
+                                    const char *command);
+
+#define unitnos_procotol_send_command_with_data(fd, pid, command, fmt,         \
+                                                args...)                       \
   do {                                                                         \
     size_t command_len = strlen(command);                                      \
     char buf[2 /* for ':' separator and newline */                             \
@@ -31,8 +46,28 @@ extern "C" {
     buf[command_len] = ':';                                                    \
     sprintf(buf + command_len + 1, fmt, args);                                 \
     buf[sizeof(buf) - 1] = '\n';                                               \
-    write(fd, buf, sizeof buf);                                                \
+    unitnos_procotol_write(fd, pid, buf, sizeof(buf));                         \
   } while (0)
+#define unitnos_procotol_send_command_with_data1(process, command, fmt,        \
+                                                 args...)                      \
+  do {                                                                         \
+    unitnos_procotol_send_command_with_data(                                   \
+        unitnos_process_get_fd(process, "w"),                                  \
+        unitnos_process_get_pid(process), command, fmt, args);                 \
+  } while (0)
+
+/**
+ * `snprintf()` can't be used to encode binary data
+ *
+ * Apparently %.*s stops at the first null terminator, instead of printing all
+ * the requested bytes.
+ */
+void unitnos_procotol_send_command_with_binary_data(int fd, pid_t pid,
+                                                    const char *command,
+                                                    void *data, size_t size);
+void unitnos_procotol_send_command_with_binary_data1(unitnos_process *process,
+                                                     const char *command,
+                                                     void *data, size_t size);
 
 struct unitnos_protocol_command {
   /**
@@ -58,6 +93,18 @@ struct unitnos_protocol_command {
  * it. Pay attention when dealing with memory management.
  */
 struct unitnos_protocol_command unitnos_protocol_parse(char *message);
+/**
+ * Utility function that splits a command into command name and binary value.
+ * The newline delimiter is stripped.
+ *
+ * \param [in] message a string terminated with a '\n'
+ * \param [in] binary_data_size the size of the binary data
+ *
+ * Note that with function modifies the given message and returns pointers to
+ * it. Pay attention when dealing with memory management.
+ */
+struct unitnos_protocol_command
+unitnos_protocol_parse_binary(char *message, size_t binary_data_size);
 
 #ifdef __cplusplus
 }

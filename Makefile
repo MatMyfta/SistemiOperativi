@@ -40,13 +40,16 @@ ${BINARY_OUTPUT_PREFIX}/main: \
 	./src/containers/libcontainers.a
 ${BINARY_OUTPUT_PREFIX}/analyzer: \
 	src/analyzer/main.o \
+	src/analyzer/path.o \
+	src/analyzer/analyzer_self.o \
+	./src/analyzer/libanalyzer_api.a \
 	src/analyzer/counter/libcounter_api.a \
 	./src/libcommon.a \
 	./src/containers/libcontainers.a
 ${BINARY_OUTPUT_PREFIX}/counter: \
 	src/analyzer/counter/main.o \
-	src/analyzer/counter/path.o \
-	src/analyzer/counter/counter.o src/analyzer/counter/counter_self.o \
+	src/analyzer/counter/counter.o \
+	src/analyzer/counter/counter_self.o \
 	src/analyzer/p/libp_api.a \
 	./src/libcommon.a \
 	./src/containers/libcontainers.a

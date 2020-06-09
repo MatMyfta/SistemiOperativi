@@ -10,29 +10,53 @@
 #include <stdlib.h>
 #include <string.h>
 
-list *list_create(size_t element_size) {
-  list *list = malloc(sizeof(struct list));
+struct unitnos_list_node {
+  unitnos_list_node *prev;
+  unitnos_list_node *next;
+  void *data;
+};
+
+struct unitnos_list {
+  unitnos_list_node *head;
+  unitnos_list_node *tail;
+  size_t size;
+  unitnos_destroy_nodify value_destroy_func;
+  void *user_data;
+};
+
+/*******************************************************************************
+ * Private functions declarations
+ *******************************************************************************/
+static void unitnos_list_remove_node(unitnos_list *list,
+                                     unitnos_list_node *node);
+
+/*******************************************************************************
+ * Public functions implementation
+ *******************************************************************************/
+unitnos_list *unitnos_list_create(unitnos_destroy_nodify value_destroy_func,
+                                  void *user_data) {
+  unitnos_list *list = malloc(sizeof(struct unitnos_list));
   list->head = list->tail = NULL;
   list->size = 0;
-  list->element_size = element_size;
+  list->value_destroy_func = value_destroy_func;
+  list->user_data = user_data;
   return list;
 }
 
-void list_destroy(list *list) {
-  list_node *curr;
+void unitnos_list_destroy(unitnos_list *list) {
+  unitnos_list_node *curr;
   for (curr = list->head; curr; curr = curr->next) {
-    list_remove_node(list, curr);
+    unitnos_list_remove_node(list, curr);
   }
   free(list);
 }
 
-void *list_back(list *list) { return list->tail->data; }
-void list_push_back(list *list, const void *data) {
-  list_node *node = malloc(sizeof(struct list_node));
+void *unitnos_list_back(unitnos_list *list) { return list->tail->data; }
+void unitnos_list_push_back(unitnos_list *list, void *data) {
+  unitnos_list_node *node = malloc(sizeof(struct unitnos_list_node));
   node->next = NULL;
   node->prev = NULL;
-  node->data = malloc(list->element_size);
-  memcpy(node->data, data, sizeof(list->element_size));
+  node->data = data;
 
   ++list->size;
   if (list->tail) {
@@ -46,24 +70,39 @@ void list_push_back(list *list, const void *data) {
     list->tail = list->head = node;
   }
 }
-void list_pop_back(list *list) {
+void unitnos_list_pop_back(unitnos_list *list) {
   if (list->tail) {
-    list_remove_node(list, list->tail);
+    unitnos_list_remove_node(list, list->tail);
   }
 }
 
-void list_remove(list *list, void *data) {
-  list_node *curr;
+void unitnos_list_remove(unitnos_list *list, const void *data) {
+  unitnos_list_node *curr = list->head;
   for (curr = list->head; curr; curr = curr->next) {
     if (curr->data == data) {
-      list_remove_node(list, curr);
+      unitnos_list_remove_node(list, curr);
       break;
     }
   }
 }
 
-void list_remove_node(list *list, list_node *node) {
-  free(node->data);
+size_t unitnos_list_size(unitnos_list *list) { return list->size; }
+
+void unitnos_list_foreach(unitnos_list *list, unitnos_list_transverse_func func,
+                          void *user_data) {
+  unitnos_list_node *curr = list->head;
+  for (curr = list->head; curr; curr = curr->next) {
+    if (func(curr->data, user_data)) {
+      break;
+    }
+  }
+}
+
+/*******************************************************************************
+ * Private functions implementation
+ *******************************************************************************/
+static void unitnos_list_remove_node(unitnos_list *list,
+                                     unitnos_list_node *node) {
   if (node == list->head) {
     list->head = node->next;
   }
@@ -76,8 +115,9 @@ void list_remove_node(list *list, list_node *node) {
   if (node->next) {
     node->next->prev = node->prev;
   }
+  if (list->value_destroy_func) {
+    list->value_destroy_func(node->data, list->user_data);
+  }
   free(node);
   --list->size;
 }
-
-size_t list_size(list *list) { return list->size; }
