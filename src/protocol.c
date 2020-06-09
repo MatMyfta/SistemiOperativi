@@ -43,8 +43,10 @@ void unitnos_procotol_wait() {
     log_debug("Waiting");
     pause();
   }
-  assert(reception_cnt > 0);
-  --reception_cnt;
+  // some other signal might wake the process
+  if (reception_cnt > 0) {
+    --reception_cnt;
+  }
 }
 
 void unitnos_procotol_write(int fd, pid_t pid, void *buf, size_t size) {
