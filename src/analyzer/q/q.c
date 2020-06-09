@@ -96,10 +96,3 @@ void unitnos_q_process(unitnos_q *q, struct unitnos_q_event_callbacks cbs,
 
   free(message);
 }
-
-void unitnos_q_read(unitnos_q *p) {
-  int fd = unitnos_process_get_fd(p->process, "r");
-  char buf[30];
-  int received = read(fd, buf, 30);
-  log_debug("Received %s", buf);
-}

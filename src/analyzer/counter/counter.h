@@ -14,6 +14,10 @@ extern "C" {
 #define UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE_BATCH_FINISH                      \
   "add_new_file_batch_finish"
 
+#define UNITNOS_COUNTER_SELF_COMMAND_SEND_STATISTICS_FILE "send_statistics_file"
+#define UNITNOS_COUNTER_SELF_COMMAND_SEND_STATISTICS_CONTENT                   \
+  "send_statistics_content"
+
 /*******************************************************************************
  * API for parent process
  *******************************************************************************/

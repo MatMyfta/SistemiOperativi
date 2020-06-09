@@ -1,6 +1,8 @@
 #ifndef UNITNOS_P_H_
 #define UNITNOS_P_H_
 
+#include "../../statistics.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -22,6 +24,14 @@ void unitnos_p_set_m(unitnos_p *p, unsigned int m);
 void unitnos_p_add_new_file(unitnos_p *p, const char *file);
 void unitnos_p_remove_file(unitnos_p *p, const char *file);
 void unitnos_p_destroy(unitnos_p *p);
+
+struct unitnos_p_event_callbacks {
+  void (*on_new_statistics)(unitnos_p *p, const char *file,
+                            struct unitnos_char_count_statistics *statistics,
+                            void *user_data);
+};
+void unitnos_p_process(unitnos_p *p, struct unitnos_p_event_callbacks cbs,
+                       void *user_data);
 
 /*******************************************************************************
  * API for p process

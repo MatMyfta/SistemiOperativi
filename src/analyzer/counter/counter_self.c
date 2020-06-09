@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 struct counter_state {
+  int output_pipe;
   unsigned int n;
   unsigned int m;
   /**
@@ -47,6 +48,10 @@ static void add_new_file_batch(struct counter_state *state,
 static void add_new_file_batch_finish(struct counter_state *state,
                                       const char *new_file);
 /**
+ * Process any message/commands from child processes "p"
+ */
+static void process_p(struct counter_state *state);
+/**
  * Terminate all processes "p"
  */
 static void terminate_p(struct counter_state *state);
@@ -72,6 +77,7 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
   FILE *fin = fdopen(in_pipe, "r");
 
   struct counter_state state = {0};
+  state.output_pipe = output_pipe;
   state.p_to_files =
       unitnos_dictionary_create(dict_key_p_compare, dict_key_p_destroy,
                                 unitnos_container_util_free, &state);
@@ -85,6 +91,8 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
 
   while (1) {
     unitnos_procotol_wait();
+
+    process_p(&state);
 
     while ((message_len =
                 unitnos_getline(&message, &message_buf_size, in_pipe)) > 0) {
@@ -170,8 +178,38 @@ static void dict_value_file_set_destroy(void *file_set, void *user_data) {
   unitnos_set_destroy(file_set);
 }
 
+/*****************************************
+ * process_p and helpers
+ ****************************************/
+static void on_new_statistics(unitnos_p *q, const char *file,
+                              struct unitnos_char_count_statistics *statistics,
+                              void *user_data) {
+  log_debug("Forward statistics for file %s", file);
+
+  struct counter_state *state = (struct counter_state *)user_data;
+
+  unitnos_procotol_send_command_with_data(
+      state->output_pipe, getppid(),
+      UNITNOS_COUNTER_SELF_COMMAND_SEND_STATISTICS_FILE, "%s", file);
+  unitnos_procotol_send_command_with_binary_data(
+      state->output_pipe, getppid(),
+      UNITNOS_COUNTER_SELF_COMMAND_SEND_STATISTICS_CONTENT, &statistics,
+      sizeof(statistics));
+}
+static bool process_each_p(void *key, void *value, void *user_data) {
+  unitnos_p *p = (unitnos_p *)key;
+  struct counter_state *state = (struct counter_state *)user_data;
+  struct unitnos_p_event_callbacks cbs;
+  cbs.on_new_statistics = on_new_statistics;
+  unitnos_p_process(p, cbs, state);
+  return false;
+}
+static void process_p(struct counter_state *state) {
+  unitnos_dictionary_foreach(state->p_to_files, process_each_p, state);
+}
+
 /***************************************
- * container related functions and helpers
+ * terminate_p and helpers
  **************************************/
 static bool terminate_each_p(void *key, void *value, void *user_data) {
   unitnos_p *p = (unitnos_p *)key;
