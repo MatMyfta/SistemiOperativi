@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
 
 static int independent_report_main(int argc, char** argv) {
     log_debug("Report running in standalone mode");
-    mkfifo(unitnos_fifo, 0666);
+    //mkfifo(unitnos_fifo, 0666);
 
     if (argc != 2) {
         log_error("Usage: report <global || path || both>");
@@ -72,14 +72,11 @@ static int independent_report_main(int argc, char** argv) {
     }
 
     if (strcmp(argv[1], "both")==0) {
-        command_ask_all();
-        // print all
+        //command_ask_all();
     } else if (strcmp(argv[1], "path")==0) {
-        command_ask_all_path();
-        // print all
+        //command_ask_all_path();
     } else if (strcmp(argv[1], "global")==0) {
-        command_ask_all_global();
-        //print all
+        //command_ask_all_global();
     } else {
         log_error("Unrecognized command");
     }
@@ -102,13 +99,11 @@ static int child_report_main(int in_pipe, int output_pipe) {
             log_verbose("Received command: %s", command.command);
 
             if (!strcmp(command.command, "both_print")) {
-                command_ask_all_global();
-                // print all
+                //command_ask_all_global();
             }
 
             if (!strcmp(command.command, "path_print")) {
-                command_ask_all_path();
-                // print all
+                //command_ask_all_path();
             }
 
         } else if (feof(fin)) {

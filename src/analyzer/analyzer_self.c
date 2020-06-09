@@ -109,8 +109,6 @@ int unitnos_analyzer_self_main(int in_pipe, int output_pipe) {
     switch (nread) {
       case -1: {
         if (errno == EAGAIN) {
-          log_verbose("%s\n", "no message");
-          sleep(1);
           break;
         } else {
           log_error("%s\n", "Error with reading");
@@ -118,7 +116,6 @@ int unitnos_analyzer_self_main(int in_pipe, int output_pipe) {
         }; break;
       }
       case 0: {
-        log_verbose("%s\n", "EOF reached");
       }; break;
       default: {
         close(fd);
