@@ -135,7 +135,7 @@ void send_statistics(struct q_state *state, const char *file) {
       read_size = CEIL_DIV(file_size, state->siblings_cnt);
     }
     size_t i;
-    char c;
+    unsigned char c;
     int ret;
     for (i = 0; i < read_size; ++i) {
       ret = read(fd, &c, 1);
@@ -144,7 +144,7 @@ void send_statistics(struct q_state *state, const char *file) {
             "Hit unexpected EOF. File has been modified by external software");
         break;
       }
-      ++stat.counts[(int)c];
+      ++stat.counts[c];
     }
   }
   close(fd);
