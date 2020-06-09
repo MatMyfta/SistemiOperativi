@@ -28,6 +28,7 @@ struct analyzer_state {
    *     * Values: unitnos_char_count_statistics
    */
   unitnos_dictionary *statistics;
+  bool close;
 };
 
 /*******************************************************************************
@@ -61,8 +62,6 @@ int unitnos_analyzer_self_main(int in_pipe, int output_pipe) {
     exit(-1);
   }
 
-  FILE *fin = fdopen(in_pipe, "r");
-
   struct analyzer_state state = {0};
   state.counter = unitnos_counter_create();
   if (!state.counter) {
@@ -75,14 +74,16 @@ int unitnos_analyzer_self_main(int in_pipe, int output_pipe) {
                                 dict_value_dict_destroy, NULL);
 
   char *message = NULL;
-  size_t message_size = 0;
+  size_t message_buf_size = 0;
+  ssize_t message_len = 0;
 
   while (1) {
     unitnos_procotol_wait();
 
     process_counter(&state);
 
-    if (getline(&message, &message_size, fin) >= 0) {
+    while ((message_len = unitnos_getline(&message, &message_buf_size, in_pipe)) >
+        0) {
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);
       log_verbose("Received command: %s", command.command);
 
@@ -109,11 +110,24 @@ int unitnos_analyzer_self_main(int in_pipe, int output_pipe) {
       }
 
       if (!strcmp(command.command, UNITNOS_ANALYZER_COMMAND_CLOSE)) {
+        state.close = true;
         break;
       }
-    } else if (feof(fin)) {
+    }
+
+    if (state.close) {
+      break;
+    }
+
+    if (message_len == 0) {
       log_debug("Input pipe closed. Terminate");
       break;
+    }
+
+    if (errno == EAGAIN) {
+      log_debug("No message from parent");
+    } else {
+      log_error("Unexpected error %s", strerror(errno));
     }
   }
   unitnos_counter_delete(state.counter);

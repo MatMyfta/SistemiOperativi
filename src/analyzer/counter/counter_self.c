@@ -133,13 +133,17 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
       }
     }
 
-    if (errno == EAGAIN) {
-      log_debug("No message from parent");
-    } else if (state.close) {
+    if (state.close) {
       break;
-    } else if (message_len == 0) {
+    }
+
+    if (message_len == 0) {
       log_debug("Input pipe closed. Terminate");
       break;
+    }
+
+    if (errno == EAGAIN) {
+      log_debug("No message from parent");
     } else {
       log_error("Unexpected error %s", strerror(errno));
     }
