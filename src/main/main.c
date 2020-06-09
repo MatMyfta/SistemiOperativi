@@ -79,6 +79,11 @@ int main() {
   size_t command_argv_size = 0;
   const char **command_argv = NULL;
 
+  if (unitnos_procotol_init() == -1) {
+    log_error("Unable to initialize communication protocol");
+    exit(-1);
+  }
+
   g_analyzer = unitnos_analyzer_create();
   if (!g_analyzer) {
     log_error("Unable to create analyzer");

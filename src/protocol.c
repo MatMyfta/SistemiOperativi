@@ -16,7 +16,10 @@
 #include <unistd.h>
 
 static sig_atomic_t reception_cnt = 0;
-static void sigusr(int signo) { ++reception_cnt; }
+static void sigusr(int signo) {
+  ++reception_cnt;
+  printf("%u A\n", getpid());
+}
 
 int unitnos_procotol_init() {
   /*
@@ -34,7 +37,19 @@ int unitnos_procotol_init() {
     log_error("Unable to set SIGUSR1 signal handler");
     return -1;
   }
+
+  if (sigaction(SIGUSR2, &sigact, NULL) < 0) {
+    log_error("Unable to set SIGUSR2 signal handler");
+    return -1;
+  }
   return 0;
+}
+
+void unitnos_procotol_ack(pid_t pid) {
+  int ret = kill(pid, SIGUSR2);
+  if (ret == -1) {
+    log_error("Unable to send signal to process %u", pid);
+  }
 }
 
 void unitnos_procotol_wait() {
@@ -52,6 +67,9 @@ void unitnos_procotol_write(int fd, pid_t pid, void *buf, size_t size) {
   if (ret == -1) {
     log_error("Unable to send signal to process %u", pid);
   }
+
+  pause();
+  log_error("ACK received");
 }
 
 void unitnos_procotol_send_command(int fd, pid_t pid, const char *command) {
@@ -61,14 +79,14 @@ void unitnos_procotol_send_command(int fd, pid_t pid, const char *command) {
   unitnos_procotol_write(fd, pid, buf, sizeof(buf));
 }
 void unitnos_procotol_send_command1(unitnos_process *process,
-    const char *command) {
+                                    const char *command) {
   unitnos_procotol_send_command(unitnos_process_get_fd(process, "w"),
-      unitnos_process_get_pid(process), command);
+                                unitnos_process_get_pid(process), command);
 }
 
 void unitnos_procotol_send_command_with_binary_data(int fd, pid_t pid,
-    const char *command,
-    void *data, size_t size) {
+                                                    const char *command,
+                                                    void *data, size_t size) {
   size_t command_len = strlen(command);
   assert(command_len > 0);
   char buf[command_len + 1 + size + 1];
@@ -81,8 +99,8 @@ void unitnos_procotol_send_command_with_binary_data(int fd, pid_t pid,
 }
 
 void unitnos_procotol_send_command_with_binary_data1(unitnos_process *process,
-    const char *command,
-    void *data, size_t size) {
+                                                     const char *command,
+                                                     void *data, size_t size) {
   unitnos_procotol_send_command_with_binary_data(
       unitnos_process_get_fd(process, "w"), unitnos_process_get_pid(process),
       command, data, size);

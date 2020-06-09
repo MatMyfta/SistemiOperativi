@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 struct counter_state {
+  bool close;
   unsigned int n;
   unsigned int m;
   /**
@@ -80,9 +81,11 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
   size_t message_size = 0;
 
   while (1) {
-    pause();
+    unitnos_procotol_wait();
 
-    if (getline(&message, &message_size, fin) >= 0) {
+    while (getline(&message, &message_size, fin) >= 0) {
+      unitnos_procotol_ack(getppid());
+
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);
       log_verbose("Received command: %s", command.command);
 
@@ -115,11 +118,20 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
       }
 
       if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_CLOSE)) {
+        state.close = true;
         break;
       }
-    } else if (feof(fin)) {
-      log_debug("Input pipe closed. Terminate");
+    }
+
+    if (errno == EAGAIN) {
+      log_debug("No message from parent");
+    }
+
+    if (feof(fin) || state.close) {
+      log_debug("Input pipe closed or close command received. Terminate");
       break;
+    } else {
+      log_error("Unexpected error %s", strerror(errno));
     }
   }
 

@@ -54,6 +54,8 @@ int unitnos_q_self_main(int in_pipe, int output_pipe) {
 
   while (1) {
     if (getline(&message, &message_size, fin) >= 0) {
+      unitnos_procotol_ack(getppid());
+
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);
       log_verbose("Received command: %s", command.command);
 

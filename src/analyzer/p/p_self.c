@@ -88,11 +88,13 @@ int unitnos_p_self_main(int in_pipe, int output_pipe) {
   size_t message_size = 0;
 
   while (1) {
-    pause();
+    unitnos_procotol_wait();
 
     process_q(&state);
 
     if (getline(&message, &message_size, fin) >= 0) {
+      unitnos_procotol_ack(getppid());
+
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);
       log_verbose("Received command: %s", command.command);
 
