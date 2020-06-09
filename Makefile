@@ -16,15 +16,11 @@ help:
 .PHONY: clean
 clean:
 	rm -rf bin/
+	rm -rf $(DEPENDS)
 	find src/ -type f \( -iname "*.a" -or -iname "*.o" -or -iname "*.a" \) -exec rm -v {} \;
 
 .PHONY: build
 build: ${DEPENDS} ${EXECUTABLES}
-
-.PHONY: cleandep
-cleandep:
-	rm -rf $(DEPENDS)
-
 
 ################################################################################
 # Executables
