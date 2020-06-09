@@ -36,6 +36,12 @@ struct unitnos_process {
   int pipe_out;
 };
 
+/*******************************************************************************
+ * Private functions declarations
+ *******************************************************************************/
+static bool is_pipe_valid(char *pipe_fd);
+static bool is_pipe(int fd);
+
 unitnos_process *unitnos_process_open(const char *path, char *const *argv) {
   pid_t pid;
   /* pipe: parent in - child out */
@@ -95,6 +101,10 @@ unitnos_process *unitnos_process_open(const char *path, char *const *argv) {
 }
 
 void unitnos_process_init(int in_pipe, int out_pipe) {
+  if (!(is_pipe(in_pipe) && is_pipe(out_pipe))) {
+    log_error("Invalid file descriptors");
+    exit(-1);
+  }
   if (write(out_pipe, "c", 1) == -1) {
     log_error("Failed synchronization with parent: %s", strerror(errno));
     exit(-1);
@@ -129,19 +139,26 @@ int unitnos_process_get_fd(unitnos_process *p, const char *mode) {
 
 pid_t unitnos_process_get_pid(unitnos_process *p) { return p->pid; }
 
-static bool is_pipe_valid(char *pipe_fd) {
-  char *tmp;
-  long fd = strtol(pipe_fd, &tmp, 0);
-  if (tmp != pipe_fd && errno != ERANGE) {
-    return fileno(stdin) != fd && fileno(stdout) != fd &&
-           fcntl(fd, F_GETFD) != -1;
-  }
-  return false;
-}
-
 bool unitnos_process_is_process(int argc, char **argv) {
   if (argc >= 3) {
     return is_pipe_valid(argv[1]) && is_pipe_valid(argv[2]);
   }
   return false;
+}
+
+/*******************************************************************************
+ * Private functions implementation
+ *******************************************************************************/
+static bool is_pipe_valid(char *pipe_fd) {
+  char *tmp;
+  long fd = strtol(pipe_fd, &tmp, 0);
+  if (tmp != pipe_fd && errno != ERANGE) {
+    return is_pipe(fd);
+  }
+  return false;
+}
+
+static bool is_pipe(int fd) {
+  return fileno(stdin) != fd && fileno(stdout) != fd &&
+    fcntl(fd, F_GETFD) != -1;
 }
