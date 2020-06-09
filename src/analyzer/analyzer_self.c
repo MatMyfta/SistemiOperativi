@@ -134,14 +134,45 @@ static void dict_value_dict_destroy(void *dict, void *user_data) {
 /**************************************
  * process_counter and helpers
  *************************************/
+struct find_path_of_file_context {
+  const char *found_path;
+  const char *file;
+};
+static bool find_path_of_file(void *key, void *value, void *user_data) {
+  const char *path = (const char *)key;
+  struct find_path_of_file_context *context =
+      (struct find_path_of_file_context *)user_data;
+
+  if (strstr(context->file, path) == context->file) {
+    context->found_path = path;
+    return true;
+  }
+  return false;
+}
 static void on_new_statistics(unitnos_counter *counter, const char *file,
                               struct unitnos_char_count_statistics *statistics,
                               void *user_data) {
   log_debug("Received statistics for file %s", file);
   struct analyzer_state *state = (struct analyzer_state *)user_data;
 
-  /*struct file_statistics *stat =*/
-  /*unitnos_dictionary_lookup(state->file_statistics_dict, file);*/
+  struct unitnos_char_count_statistics *stat =
+      malloc(sizeof(struct unitnos_char_count_statistics));
+  memcpy(stat, statistics, sizeof(struct unitnos_char_count_statistics));
+
+  // find path associated with file
+  struct find_path_of_file_context context;
+  context.found_path = NULL;
+  context.file = file;
+  unitnos_dictionary_foreach(state->statistics, find_path_of_file, &context);
+  assert(context.found_path != NULL);
+
+  // insert stat into dictionary
+  unitnos_dictionary *file_stat_dict =
+      unitnos_dictionary_lookup(state->statistics, context.found_path);
+  assert(file_stat_dict != NULL);
+  unitnos_dictionary_insert(file_stat_dict, (void *)file, stat);
+
+  log_info("Received statistics for file %s", file);
 }
 static void process_counter(struct analyzer_state *state) {
   struct unitnos_counter_event_callbacks cbs;
