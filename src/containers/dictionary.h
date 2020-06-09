@@ -97,6 +97,17 @@ bool unitnos_dictionary_contains(unitnos_dictionary *dictionary,
                                  const void *key);
 
 /**
+ * Gets the key in the dictionary that matches with the given key.
+ *
+ * \param [in] dictionary a dictionary
+ * \param [in] the key to look up
+ *
+ * \returns the matching key, or NULL if the key was not found
+ */
+void *unitnos_dictionary_key_lookup(unitnos_dictionary *dictionary,
+                                    const void *key);
+
+/**
  * Removes a key/value pair from a dictionary.
  *
  * \param [in] dictionary a dictionary

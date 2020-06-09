@@ -73,6 +73,17 @@ void *unitnos_dictionary_lookup(unitnos_dictionary *dictionary,
   }
   return NULL;
 }
+
+void *unitnos_dictionary_key_lookup(unitnos_dictionary *dictionary,
+                                    const void *key) {
+  struct unitnos_dictionary_node node;
+  node.key = (void *)key;
+  void *n = unitnos_tree_lookup(dictionary->tree, &node);
+  if (n) {
+    return ((struct unitnos_dictionary_node *)n)->key;
+  }
+  return NULL;
+}
 bool unitnos_dictionary_contains(unitnos_dictionary *dictionary,
                                  const void *key) {
   struct unitnos_dictionary_node node;
