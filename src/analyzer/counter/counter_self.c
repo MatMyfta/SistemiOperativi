@@ -18,7 +18,6 @@
 #include <unistd.h>
 
 struct counter_state {
-  bool close;
   unsigned int n;
   unsigned int m;
   /**
@@ -31,6 +30,7 @@ struct counter_state {
    * Values: set of path to files
    */
   unitnos_dictionary *p_to_files;
+  bool close;
 };
 
 /*******************************************************************************
@@ -78,14 +78,14 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
       NULL, NULL);
 
   char *message = NULL;
-  size_t message_size = 0;
+  size_t message_buf_size = 0;
+  ssize_t message_len;
 
   while (1) {
     unitnos_procotol_wait();
 
-    while (getline(&message, &message_size, fin) >= 0) {
-      unitnos_procotol_ack(getppid());
-
+    while ((message_len =
+                unitnos_getline(&message, &message_buf_size, in_pipe)) > 0) {
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);
       log_verbose("Received command: %s", command.command);
 
@@ -125,10 +125,10 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
 
     if (errno == EAGAIN) {
       log_debug("No message from parent");
-    }
-
-    if (feof(fin) || state.close) {
-      log_debug("Input pipe closed or close command received. Terminate");
+    } else if (state.close) {
+      break;
+    } else if (message_len == 0) {
+      log_debug("Input pipe closed. Terminate");
       break;
     } else {
       log_error("Unexpected error %s", strerror(errno));

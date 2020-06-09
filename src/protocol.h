@@ -31,7 +31,6 @@ int unitnos_procotol_init();
  */
 void unitnos_procotol_wait();
 
-void unitnos_procotol_ack(pid_t pid);
 void unitnos_procotol_write(int fd, pid_t pid, void *buf, size_t size);
 void unitnos_procotol_send_command(int fd, pid_t pid, const char *command);
 void unitnos_procotol_send_command1(unitnos_process *process,

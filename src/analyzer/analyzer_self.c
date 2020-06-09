@@ -75,7 +75,6 @@ int unitnos_analyzer_self_main(int in_pipe, int output_pipe) {
     unitnos_procotol_wait();
 
     if (getline(&message, &message_size, fin) >= 0) {
-      unitnos_procotol_ack(getppid());
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);
       log_verbose("Received command: %s", command.command);
 

@@ -41,6 +41,7 @@ struct p_state {
   unitnos_dictionary *file_statistics_dict;
   unsigned int m;
   int output_pipe;
+  bool close;
 };
 
 /*******************************************************************************
@@ -75,8 +76,6 @@ int unitnos_p_self_main(int in_pipe, int output_pipe) {
     exit(-1);
   }
 
-  FILE *fin = fdopen(in_pipe, "r");
-
   struct p_state state = {0};
   state.output_pipe = output_pipe;
   state.q_list = unitnos_list_create(q_destructor, &state);
@@ -85,16 +84,16 @@ int unitnos_p_self_main(int in_pipe, int output_pipe) {
       unitnos_container_util_free, NULL);
 
   char *message = NULL;
-  size_t message_size = 0;
+  size_t message_buf_size = 0;
+  ssize_t message_len = 0;
 
   while (1) {
     unitnos_procotol_wait();
 
     process_q(&state);
 
-    if (getline(&message, &message_size, fin) >= 0) {
-      unitnos_procotol_ack(getppid());
-
+    while ((message_len =
+                unitnos_getline(&message, &message_buf_size, in_pipe)) > 0) {
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);
       log_verbose("Received command: %s", command.command);
 
@@ -117,15 +116,28 @@ int unitnos_p_self_main(int in_pipe, int output_pipe) {
       }
 
       if (!strcmp(command.command, UNITNOS_P_COMMAND_CLOSE)) {
+        state.close = true;
         break;
       }
-    } else if (errno == EAGAIN) {
-      log_verbose("No message from parent");
-    } else if (feof(fin)) {
+    }
+
+    if (state.close) {
+      break;
+    }
+
+    if (message_len == 0) {
       log_debug("Input pipe closed. Terminate");
       break;
     }
+
+    if (errno == EAGAIN) {
+      log_debug("No message from parent");
+    } else {
+      log_error("Unexpected error %s", strerror(errno));
+    }
   }
+
+  terminate_q(&state);
 
   return 0;
 }
@@ -279,6 +291,7 @@ static void set_m(struct p_state *state, unsigned int m) {
  * add_new_file and helpers
  *******************************************************************************/
 static bool send_new_path(void *value, void *user_data) {
+  log_verbose("Sending path to q");
   const char *file = (const char *)user_data;
   unitnos_q *q = (unitnos_q *)value;
   unitnos_q_add_new_file(q, file);

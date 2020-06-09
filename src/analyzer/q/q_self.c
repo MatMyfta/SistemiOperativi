@@ -6,6 +6,7 @@
 #include "../../containers/list.h"
 #include "../../protocol.h"
 #include "../../statistics.h"
+#include "../../utils.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -39,9 +40,11 @@ int unitnos_q_self_main(int in_pipe, int output_pipe) {
    * q just need to talk with the parent.
    * The communication can be blocking.
    */
+  if (unitnos_procotol_init() == -1) {
+    log_error("Unable to initialize communication protocol");
+    exit(-1);
+  }
   log_debug("Started");
-
-  FILE *fin = fdopen(in_pipe, "r");
 
   struct q_state state = {0};
   state.output_pipe = output_pipe;
@@ -50,12 +53,12 @@ int unitnos_q_self_main(int in_pipe, int output_pipe) {
   state.ith = -1;
 
   char *message = NULL;
-  size_t message_size = 0;
+  size_t message_buf_size = 0;
+  ssize_t message_len = 0;
 
   while (1) {
-    if (getline(&message, &message_size, fin) >= 0) {
-      unitnos_procotol_ack(getppid());
-
+    if ((message_len = unitnos_getline(&message, &message_buf_size, in_pipe)) >
+        0) {
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);
       log_verbose("Received command: %s", command.command);
 
@@ -83,13 +86,15 @@ int unitnos_q_self_main(int in_pipe, int output_pipe) {
          */
         assert(state.siblings_cnt > 0);
         assert(state.ith >= 0);
-        send_statistics(&state, command.value);
+        /*send_statistics(&state, command.value);*/
       }
 
       if (!strcmp(command.command, UNITNOS_Q_COMMAND_CLOSE)) {
         break;
       }
-    } else if (feof(fin)) {
+    }
+
+    if (message_len == 0) {
       log_debug("Input pipe closed. Terminate");
       break;
     }

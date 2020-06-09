@@ -16,10 +16,7 @@
 #include <unistd.h>
 
 static sig_atomic_t reception_cnt = 0;
-static void sigusr(int signo) {
-  ++reception_cnt;
-  printf("%u A\n", getpid());
-}
+static void sigusr(int signo) { ++reception_cnt; }
 
 int unitnos_procotol_init() {
   /*
@@ -30,6 +27,7 @@ int unitnos_procotol_init() {
   sigemptyset(&sigact.sa_mask);
   sigact.sa_handler = sigusr;
   sigact.sa_flags = 0;
+  sigact.sa_flags |= SA_SIGINFO;
   // System calls interrupted by this signal are automatically restarted.
   sigact.sa_flags |= SA_RESTART;
 
@@ -37,19 +35,7 @@ int unitnos_procotol_init() {
     log_error("Unable to set SIGUSR1 signal handler");
     return -1;
   }
-
-  if (sigaction(SIGUSR2, &sigact, NULL) < 0) {
-    log_error("Unable to set SIGUSR2 signal handler");
-    return -1;
-  }
   return 0;
-}
-
-void unitnos_procotol_ack(pid_t pid) {
-  int ret = kill(pid, SIGUSR2);
-  if (ret == -1) {
-    log_error("Unable to send signal to process %u", pid);
-  }
 }
 
 void unitnos_procotol_wait() {
@@ -64,12 +50,9 @@ void unitnos_procotol_wait() {
 void unitnos_procotol_write(int fd, pid_t pid, void *buf, size_t size) {
   write(fd, buf, size);
   int ret = kill(pid, SIGUSR1);
-  if (ret == -1) {
+  if (ret != 0) {
     log_error("Unable to send signal to process %u", pid);
   }
-
-  pause();
-  log_error("ACK received");
 }
 
 void unitnos_procotol_send_command(int fd, pid_t pid, const char *command) {

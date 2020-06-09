@@ -41,6 +41,15 @@ int unitnos_get_argc(char *const *argv);
 int unitnos_set_non_blocking(int fd);
 int unitnos_set_blocking(int fd);
 
+/**
+ * Similar to `getline()` with the follwing differences
+ *
+ * * uses file descriptor instead of stream
+ * * handles signal interruption
+ */
+ssize_t unitnos_getline(char ** line, size_t *size, int fd);
+void* unitnos_realloc(void *ptr, size_t new_size);
+
 #ifdef __cplusplus
 }
 #endif

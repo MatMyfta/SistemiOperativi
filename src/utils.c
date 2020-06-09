@@ -98,3 +98,50 @@ int unitnos_set_blocking(int fd) {
 
   return 0;
 }
+
+void *unitnos_realloc(void *ptr, size_t new_size) {
+  void *new_ptr = realloc(ptr, new_size);
+  if (new_ptr == NULL) {
+    free(ptr);
+    log_error("Unable to allocate memory %s", strerror(errno));
+    exit(-1);
+  }
+  return new_ptr;
+}
+
+#define LINE_INIT_SIZE 128u
+#define LINE_SIZE_GROW_RATE 1.5
+ssize_t unitnos_getline(char **line, size_t *size, int fd) {
+  if (*line == NULL) {
+    *line = malloc(LINE_INIT_SIZE);
+    *size = LINE_INIT_SIZE;
+  }
+
+  size_t cnt = 0;
+
+  int res;
+
+  while (1) {
+    if (cnt >= *size) {
+      *size *= LINE_SIZE_GROW_RATE;
+      *line = unitnos_realloc(*line, *size);
+    }
+
+    res = read(fd, (*line) + cnt, 1);
+
+    if (res == -1) {
+      if (errno == EINTR) {
+        continue;
+      } else {
+        return -1;
+      }
+    }
+
+    if (*((*line) + cnt) == '\n') {
+      break;
+    }
+
+    cnt++;
+  }
+  return cnt;
+}
