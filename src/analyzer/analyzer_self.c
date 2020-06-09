@@ -50,6 +50,8 @@ int unitnos_analyzer_self_main(int in_pipe, int output_pipe) {
     exit(-1);
   }
 
+  unitnos_process_init(in_pipe, output_pipe);
+
   if (unitnos_set_non_blocking(in_pipe)) {
     log_error("Unable to set input pipe to non-blocking mode");
     exit(-1);

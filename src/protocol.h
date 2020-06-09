@@ -20,7 +20,7 @@ extern "C" {
 #define UNITNOS_PROTOCOL_COMMAND_VALUE_DELIMITATOR ':'
 
 /**
- * Setup SIGUSR1
+ * Setup SIGUSR1, call it before #unitnos_process_init
  *
  * \retval 0 success
  * \retval -1 failure

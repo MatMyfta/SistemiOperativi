@@ -36,6 +36,8 @@ void send_statistics(struct q_state *state, const char *file);
  * Public functions implementation
  *******************************************************************************/
 int unitnos_q_self_main(int in_pipe, int output_pipe) {
+  log_debug("Started");
+
   /*
    * q just need to talk with the parent.
    * The communication can be blocking.
@@ -44,7 +46,8 @@ int unitnos_q_self_main(int in_pipe, int output_pipe) {
     log_error("Unable to initialize communication protocol");
     exit(-1);
   }
-  log_debug("Started");
+
+  unitnos_process_init(in_pipe, output_pipe);
 
   struct q_state state = {0};
   state.output_pipe = output_pipe;
