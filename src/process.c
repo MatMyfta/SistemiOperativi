@@ -116,6 +116,8 @@ int unitnos_process_get_fd(unitnos_process *p, const char *mode) {
   }
 }
 
+pid_t unitnos_process_get_pid(unitnos_process *p) { return p->pid; }
+
 static bool is_pipe_valid(char *pipe_fd) {
   char *tmp;
   long fd = strtol(pipe_fd, &tmp, 0);

@@ -1,6 +1,7 @@
 #define LOG_TAG "main"
 #include "../analyzer/analyzer.h"
 #include "../logger.h"
+#include "../protocol.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -78,6 +79,8 @@ int main() {
   size_t command_argv_size = 0;
   const char **command_argv = NULL;
 
+  unitnos_procotol_init();
+
   g_analyzer = unitnos_analyzer_create();
   if (!g_analyzer) {
     log_error("Unable to create analyzer");
@@ -109,6 +112,8 @@ int main() {
       }
     }
   }
+
+  unitnos_analyzer_delete(g_analyzer);
   return 0;
 }
 

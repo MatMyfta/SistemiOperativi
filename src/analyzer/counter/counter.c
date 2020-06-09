@@ -30,17 +30,19 @@ unitnos_counter *unitnos_counter_create(void) {
   }
 }
 void unitnos_counter_delete(unitnos_counter *counter) {
+  unitnos_procotol_send_command1(counter->process,
+                                 UNITNOS_COUNTER_COMMAND_CLOSE);
   unitnos_process_close(counter->process);
   free(counter);
 }
 
 void unitnos_counter_set_n(unitnos_counter *counter, unsigned int n) {
-  unitnos_procotol_send_command1(unitnos_process_get_fd(counter->process, "w"),
-                                 UNITNOS_COUNTER_COMMAND_SET_N, "%u", n);
+  unitnos_procotol_send_command_with_data1(
+      counter->process, UNITNOS_COUNTER_COMMAND_SET_N, "%u", n);
 }
 void unitnos_counter_set_m(unitnos_counter *counter, unsigned int m) {
-  unitnos_procotol_send_command1(unitnos_process_get_fd(counter->process, "w"),
-                                 UNITNOS_COUNTER_COMMAND_SET_M, "%u", m);
+  unitnos_procotol_send_command_with_data1(
+      counter->process, UNITNOS_COUNTER_COMMAND_SET_M, "%u", m);
 }
 
 struct add_new_file_batch_context {
@@ -54,13 +56,13 @@ static bool send_file(void *value, void *user_data) {
   const char *file = value;
 
   if (context->index == context->size - 1) {
-    unitnos_procotol_send_command1(
-        unitnos_process_get_fd(context->counter->process, "w"),
+    unitnos_procotol_send_command_with_data1(
+        context->counter->process,
         UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE_BATCH_FINISH, "%s", file);
   } else {
-    unitnos_procotol_send_command1(
-        unitnos_process_get_fd(context->counter->process, "w"),
-        UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE_BATCH, "%s", file);
+    unitnos_procotol_send_command_with_data1(
+        context->counter->process, UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE_BATCH,
+        "%s", file);
   }
   ++context->index;
   return false;

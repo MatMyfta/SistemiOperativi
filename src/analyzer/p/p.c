@@ -31,16 +31,16 @@ void unitnos_p_destroy(unitnos_p *p) {
 }
 
 void unitnos_p_set_m(unitnos_p *p, unsigned int m) {
-  unitnos_procotol_send_command1(unitnos_process_get_fd(p->process, "w"),
-                                 UNITNOS_P_COMMAND_SET_M, "%u", m);
+  unitnos_procotol_send_command_with_data1(p->process, UNITNOS_P_COMMAND_SET_M,
+                                           "%u", m);
 }
 void unitnos_p_add_new_file(unitnos_p *p, const char *file) {
-  unitnos_procotol_send_command1(unitnos_process_get_fd(p->process, "w"),
-                                 UNITNOS_P_COMMAND_ADD_NEW_FILE, "%s", file);
+  unitnos_procotol_send_command_with_data1(
+      p->process, UNITNOS_P_COMMAND_ADD_NEW_FILE, "%s", file);
 }
 void unitnos_p_remove_file(unitnos_p *p, const char *file) {
-  unitnos_procotol_send_command1(unitnos_process_get_fd(p->process, "w"),
-                                 UNITNOS_P_COMMAND_REMOVE_FILE, "%s", file);
+  unitnos_procotol_send_command_with_data1(
+      p->process, UNITNOS_P_COMMAND_REMOVE_FILE, "%s", file);
 }
 void unitnos_p_read(unitnos_p *p) {
   int fd = unitnos_process_get_fd(p->process, "r");

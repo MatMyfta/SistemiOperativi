@@ -9,6 +9,7 @@ extern "C" {
 
 #define UNITNOS_COUNTER_COMMAND_SET_N "set_n"
 #define UNITNOS_COUNTER_COMMAND_SET_M "set_m"
+#define UNITNOS_COUNTER_COMMAND_CLOSE "close"
 #define UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE_BATCH "add_new_file_batch"
 #define UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE_BATCH_FINISH                      \
   "add_new_file_batch_finish"

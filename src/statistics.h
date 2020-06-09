@@ -54,6 +54,24 @@ struct unitnos_chartype_percentage_statistics {
   unsigned char punct;
 };
 
+/**
+ * Read a message from the given \p fd which is supposed to contain a
+ * statistics. The message may be prefixed with \p command and
+ * UNITNOS_PROTOCOL_COMMAND_VALUE_DELIMITATOR
+ *
+ * \param [in] command prepended before the statistics binary string
+ * \param [out] stat buffer were the read status will be written
+ * \param [in] fd input file descriptor
+ *
+ * We need this function because `getline()` doesn't work, since the binary
+ * string statistics could contain anything (including \0, \n, etc)...
+ *
+ * \retval 0 OK
+ * \retval -1 error
+ */
+int unitnos_char_count_statistics_read(
+    const char *command, struct unitnos_char_count_statistics *stat, int fd);
+
 #ifdef __cplusplus
 }
 #endif

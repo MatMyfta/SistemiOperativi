@@ -9,6 +9,7 @@
 #include "bool.h"
 
 #include <stdio.h>
+#include <unistd.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,6 +44,7 @@ int unitnos_process_close(unitnos_process *p);
  * descriptor
  */
 int unitnos_process_get_fd(unitnos_process *p, const char *mode);
+pid_t unitnos_process_get_pid(unitnos_process *p);
 /**
  * Given the argc and argv passed to the main function of a process, determine
  * whether the process has been created by #unitnos_process_open.

@@ -9,8 +9,11 @@
 #include "../../containers/list.h"
 #include "../../protocol.h"
 #include "../../statistics.h"
+#include "../../utils.h"
 
 #include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,6 +40,7 @@ struct p_state {
    */
   unitnos_dictionary *file_statistics_dict;
   unsigned int m;
+  int output_pipe;
 };
 
 /*******************************************************************************
@@ -46,15 +50,31 @@ static void q_destructor(void *value, void *user_data);
 static void set_m(struct p_state *state, unsigned int m);
 static void add_new_file(struct p_state *state, const char *new_file);
 static void remove_file(struct p_state *state, const char *removed_file);
+/**
+ * Process any message/commands from child processes "q"
+ */
+static void process_q(struct p_state *state);
 
 /*******************************************************************************
  * Public functions implementation
  *******************************************************************************/
 int unitnos_p_self_main(int in_pipe, int output_pipe) {
   log_debug("Started");
+
+  if (unitnos_procotol_init() == -1) {
+    log_error("Unable to initialize communication protocol");
+    exit(-1);
+  }
+
+  if (unitnos_set_non_blocking(in_pipe)) {
+    log_error("Unable to set input pipe to non-blocking mode");
+    exit(-1);
+  }
+
   FILE *fin = fdopen(in_pipe, "r");
 
   struct p_state state = {0};
+  state.output_pipe = output_pipe;
   state.q_list = unitnos_list_create(q_destructor, &state);
   state.file_statistics_dict = unitnos_dictionary_create(
       unitnos_container_util_strcmp, unitnos_container_util_free,
@@ -64,6 +84,10 @@ int unitnos_p_self_main(int in_pipe, int output_pipe) {
   size_t message_size = 0;
 
   while (1) {
+    pause();
+
+    process_q(&state);
+
     if (getline(&message, &message_size, fin) >= 0) {
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);
       log_verbose("Received command: %s", command.command);
@@ -85,6 +109,8 @@ int unitnos_p_self_main(int in_pipe, int output_pipe) {
         log_verbose("Received file: %s", command.value);
         remove_file(&state, command.value);
       }
+    } else if (errno == EAGAIN) {
+      log_verbose("No message from parent");
     } else if (feof(fin)) {
       log_debug("Input pipe closed. Terminate");
       break;
@@ -99,6 +125,54 @@ int unitnos_p_self_main(int in_pipe, int output_pipe) {
  *******************************************************************************/
 static void q_destructor(void *value, void *user_data) {
   unitnos_q_destroy(value);
+}
+
+/*******************************************************************************
+ * process_q and helpers
+ *******************************************************************************/
+static void on_new_statistics(unitnos_q *q, const char *file,
+                              struct unitnos_char_count_statistics *statistics,
+                              void *user_data) {
+  log_verbose("Received partial statistics for file %s", file);
+  struct p_state *state = (struct p_state *)user_data;
+
+  struct file_statistics *stat =
+      unitnos_dictionary_lookup(state->file_statistics_dict, file);
+  /*
+   * If there're no bugs in p and q, the file must exist in the dictionary
+   * and there should be at least one partial file statistics missing.
+   */
+  assert(stat);
+  assert(stat->missing != 0);
+  stat->missing--;
+
+  // merge new partial statistics into whole-file statistics
+  size_t i;
+  for (i = 0; i < sizeof(stat->statistics.counts); ++i) {
+    stat->statistics.counts[i] += statistics->counts[i];
+  }
+
+  if (stat->missing == 0) {
+    log_debug("Statistics completed for file %s", file);
+    unitnos_procotol_send_command_with_data(
+        state->output_pipe, getppid(),
+        UNITNOS_P_SELF_COMMAND_SEND_STATISTICS_FILE, "%s", file);
+    unitnos_procotol_send_command_with_binary_data(
+        state->output_pipe, getppid(),
+        UNITNOS_P_SELF_COMMAND_SEND_STATISTICS_CONTENT, &stat->statistics,
+        sizeof(stat->statistics));
+  }
+}
+static bool process_each_q(void *value, void *user_data) {
+  unitnos_q *q = (unitnos_q *)value;
+  struct p_state *state = (struct p_state *)user_data;
+  struct unitnos_q_event_callbacks cbs;
+  cbs.on_new_statistics = on_new_statistics;
+  unitnos_q_process(value, cbs, state);
+  return false;
+}
+static void process_q(struct p_state *state) {
+  unitnos_list_foreach(state->q_list, process_each_q, state);
 }
 
 /*******************************************************************************

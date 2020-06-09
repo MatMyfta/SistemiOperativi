@@ -6,11 +6,71 @@
 
 #include "protocol.h"
 
+#include "logger.h"
+
 #include <assert.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+static void sigusr(int signo) {}
+
+int unitnos_procotol_init() {
+  /*
+   * Use sigaction instead of signal()
+   * We don't need to reinstall signal catcher!
+   */
+  struct sigaction sigact;
+  sigemptyset(&sigact.sa_mask);
+  sigact.sa_handler = sigusr;
+  sigact.sa_flags = 0;
+  // System calls interrupted by this signal are automatically restarted.
+  sigact.sa_flags |= SA_RESTART;
+
+  if (sigaction(SIGUSR1, &sigact, NULL) < 0) {
+    log_error("Unable to set SIGUSR1 signal handler");
+    return -1;
+  }
+  return 0;
+}
+
+void unitnos_procotol_send_command(int fd, pid_t pid, const char *command) {
+  char buf[strlen(command) + 1];
+  strcpy(buf, command);
+  buf[sizeof(buf) - 1] = '\n';
+  write(fd, buf, sizeof(buf));
+  kill(pid, SIGUSR1);
+}
+void unitnos_procotol_send_command1(unitnos_process *process,
+                                    const char *command) {
+  unitnos_procotol_send_command(unitnos_process_get_fd(process, "w"),
+                                unitnos_process_get_pid(process), command);
+}
+
+void unitnos_procotol_send_command_with_binary_data(int fd, pid_t pid,
+                                                    const char *command,
+                                                    void *data, size_t size) {
+  size_t command_len = strlen(command);
+  assert(command_len > 0);
+  char buf[command_len + 1 + size + 1];
+  strcpy(buf, command);
+  buf[command_len] = ':';
+  strncpy(buf + command_len + 1, data, size);
+  buf[command_len + 1 + size] = '\n';
+  printf("BUF SIZE: %lu", sizeof(buf));
+  write(fd, buf, sizeof(buf));
+  kill(pid, SIGUSR1);
+}
+
+void unitnos_procotol_send_command_with_binary_data1(unitnos_process *process,
+                                                     const char *command,
+                                                     void *data, size_t size) {
+  unitnos_procotol_send_command_with_binary_data(
+      unitnos_process_get_fd(process, "w"), unitnos_process_get_pid(process),
+      command, data, size);
+}
 
 struct unitnos_protocol_command unitnos_protocol_parse(char *message) {
   struct unitnos_protocol_command command;

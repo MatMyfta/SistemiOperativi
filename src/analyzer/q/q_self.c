@@ -21,8 +21,9 @@
 #define CEIL_DIV(x, y) (1 + ((x - 1) / y))
 
 struct q_state {
-  unsigned int ith;
-  unsigned int siblings_cnt;
+  ssize_t ith;
+  ssize_t siblings_cnt;
+  int output_pipe;
 };
 
 /*******************************************************************************
@@ -39,6 +40,10 @@ int unitnos_q_self_main(int in_pipe, int output_pipe) {
   FILE *fin = fdopen(in_pipe, "r");
 
   struct q_state state = {0};
+  state.output_pipe = output_pipe;
+  // mark as invalid
+  state.siblings_cnt = -1;
+  state.ith = -1;
 
   char *message = NULL;
   size_t message_size = 0;
@@ -66,6 +71,12 @@ int unitnos_q_self_main(int in_pipe, int output_pipe) {
 
       if (!strcmp(command.command, UNITNOS_Q_COMMAND_ADD_NEW_FILE)) {
         log_verbose("Received file: %s", command.value);
+        /*
+         * when the parent sends a new file, it must have already sent ith and
+         * siblings_cnt
+         */
+        assert(state.siblings_cnt > 0);
+        assert(state.ith >= 0);
         send_statistics(&state, command.value);
       }
 
@@ -99,28 +110,35 @@ void send_statistics(struct q_state *state, const char *file) {
   }
   if (file_size == 0) {
     log_debug("File \"%s\" is empty", file);
-    return;
-  }
+  } else {
+    lseek(fd, 0, SEEK_SET);
 
-  lseek(fd, 0, SEEK_SET);
-
-  size_t read_size = file_size / state->siblings_cnt;
-  // position cursor at the correct place
-  lseek(fd, (read_size * state->ith), SEEK_SET);
-  if (state->ith == state->siblings_cnt - 1) {
-    read_size = CEIL_DIV(file_size, state->siblings_cnt);
-  }
-  size_t i;
-  char c;
-  int ret;
-  for (i = 0; i < read_size; ++i) {
-    ret = read(fd, &c, 1);
-    if (ret == 0) {
-      log_warn(
-          "Hit unexpected EOF. File has been modified by external software");
-      break;
+    size_t read_size = file_size / state->siblings_cnt;
+    // position cursor at the correct place
+    lseek(fd, (read_size * state->ith), SEEK_SET);
+    if (state->ith == state->siblings_cnt - 1) {
+      read_size = CEIL_DIV(file_size, state->siblings_cnt);
     }
-    ++stat.counts[(int)c];
+    size_t i;
+    char c;
+    int ret;
+    for (i = 0; i < read_size; ++i) {
+      ret = read(fd, &c, 1);
+      if (ret == 0) {
+        log_warn(
+            "Hit unexpected EOF. File has been modified by external software");
+        break;
+      }
+      ++stat.counts[(int)c];
+    }
   }
   close(fd);
+
+  log_verbose("Sending statistics for file %s", file);
+  unitnos_procotol_send_command_with_data(
+      state->output_pipe, getppid(),
+      UNITNOS_Q_SELF_COMMAND_SEND_STATISTICS_FILE, "%s", file);
+  unitnos_procotol_send_command_with_binary_data(
+      state->output_pipe, getppid(),
+      UNITNOS_Q_SELF_COMMAND_SEND_STATISTICS_CONTENT, &stat, sizeof(stat));
 }

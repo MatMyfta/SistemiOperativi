@@ -6,6 +6,10 @@
 
 #include "utils.h"
 
+#include "logger.h"
+
+#include <errno.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
@@ -60,4 +64,37 @@ unitnos_process *unitnos_program_open(enum unitnos_program program,
     new_argv[i] = (char *)NULL;
   }
   return unitnos_process_open(program_path, (char **)new_argv);
+}
+
+int unitnos_set_non_blocking(int fd) {
+  int opts = fcntl(fd, F_GETFL);
+
+  if (opts == -1) {
+    log_error("Unable to read communication modality: %s", strerror(errno));
+    return -1;
+  }
+
+  opts |= O_NONBLOCK;
+  if (fcntl(fd, F_SETFL, opts) == -1) {
+    log_error("Unable to modify communication modality: %s", strerror(errno));
+    return -1;
+  }
+
+  return 0;
+}
+int unitnos_set_blocking(int fd) {
+  int opts = fcntl(fd, F_GETFL);
+
+  if (opts == -1) {
+    log_error("Unable to read communication modality: %s", strerror(errno));
+    return -1;
+  }
+
+  opts &= (~O_NONBLOCK);
+  if (fcntl(fd, F_SETFL, opts) == -1) {
+    log_error("Unable to modify communication modality: %s", strerror(errno));
+    return -1;
+  }
+
+  return 0;
 }

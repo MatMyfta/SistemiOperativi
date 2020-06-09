@@ -8,6 +8,7 @@
 #include "../../containers/list.h"
 #include "../../containers/set.h"
 #include "../../protocol.h"
+#include "../../utils.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -51,6 +52,16 @@ static void add_new_file_batch_finish(struct counter_state *state,
 int unitnos_counter_self_main(int in_pipe, int output_pipe) {
   log_debug("Started");
 
+  if (unitnos_procotol_init() == -1) {
+    log_error("Unable to initialize communication protocol");
+    exit(-1);
+  }
+
+  if (unitnos_set_non_blocking(in_pipe)) {
+    log_error("Unable to set input pipe to non-blocking mode");
+    exit(-1);
+  }
+
   FILE *fin = fdopen(in_pipe, "r");
 
   struct counter_state state = {0};
@@ -65,6 +76,8 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
   size_t message_size = 0;
 
   while (1) {
+    pause();
+
     if (getline(&message, &message_size, fin) >= 0) {
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);
       log_verbose("Received command: %s", command.command);
@@ -95,6 +108,10 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
                   UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE_BATCH_FINISH)) {
         log_verbose("Received file: %s", command.value);
         add_new_file_batch_finish(&state, command.value);
+      }
+
+      if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_CLOSE)) {
+        break;
       }
     } else if (feof(fin)) {
       log_debug("Input pipe closed. Terminate");

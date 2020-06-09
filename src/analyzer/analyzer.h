@@ -9,6 +9,7 @@ extern "C" {
 #define UNITNOS_ANALYZER_COMMAND_SET_M "set_m"
 #define UNITNOS_ANALYZER_COMMAND_ADD_NEW_PATH "add_new_path"
 #define UNITNOS_ANALYZER_COMMAND_LIST_PATHS "list_paths"
+#define UNITNOS_ANALYZER_COMMAND_CLOSE "close"
 
 /*******************************************************************************
  * API for parent process

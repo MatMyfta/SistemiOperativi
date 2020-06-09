@@ -38,6 +38,9 @@ unitnos_process *unitnos_program_open(enum unitnos_program program,
  */
 int unitnos_get_argc(char *const *argv);
 
+int unitnos_set_non_blocking(int fd);
+int unitnos_set_blocking(int fd);
+
 #ifdef __cplusplus
 }
 #endif

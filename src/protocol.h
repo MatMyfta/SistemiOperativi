@@ -7,6 +7,9 @@
 #ifndef UNITNOS_PROTOCOL_H_
 #define UNITNOS_PROTOCOL_H_
 
+#include "process.h"
+
+#include <signal.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -14,15 +17,23 @@
 extern "C" {
 #endif
 
-#define unitnos_procotol_send_command(fd, command)                             \
-  do {                                                                         \
-    char buf[strlen(command) + 1];                                             \
-    strcpy(buf, command);                                                      \
-    buf[sizeof(buf) - 1] = '\n';                                               \
-    write(fd, buf, sizeof(buf));                                               \
-  } while (0)
+#define UNITNOS_PROTOCOL_COMMAND_VALUE_DELIMITATOR ':'
 
-#define unitnos_procotol_send_command1(fd, command, fmt, args...)              \
+/**
+ * Setup SIGUSR1
+ *
+ * \retval 0 success
+ * \retval -1 failure
+ */
+int unitnos_procotol_init();
+int unitnos_procotol_deinit();
+
+void unitnos_procotol_send_command(int fd, pid_t pid, const char *command);
+void unitnos_procotol_send_command1(unitnos_process *process,
+                                    const char *command);
+
+#define unitnos_procotol_send_command_with_data(fd, pid, command, fmt,         \
+                                                args...)                       \
   do {                                                                         \
     size_t command_len = strlen(command);                                      \
     char buf[2 /* for ':' separator and newline */                             \
@@ -32,7 +43,28 @@ extern "C" {
     sprintf(buf + command_len + 1, fmt, args);                                 \
     buf[sizeof(buf) - 1] = '\n';                                               \
     write(fd, buf, sizeof buf);                                                \
+    kill(pid, SIGUSR1);                                                        \
   } while (0)
+#define unitnos_procotol_send_command_with_data1(process, command, fmt,        \
+                                                 args...)                      \
+  do {                                                                         \
+    unitnos_procotol_send_command_with_data(                                   \
+        unitnos_process_get_fd(process, "w"),                                  \
+        unitnos_process_get_pid(process), command, fmt, args);                 \
+  } while (0)
+
+/**
+ * `snprintf()` can't be used to encode binary data
+ *
+ * Apparently %.*s stops at the first null terminator, instead of printing all
+ * the requested bytes.
+ */
+void unitnos_procotol_send_command_with_binary_data(int fd, pid_t pid,
+                                                    const char *command,
+                                                    void *data, size_t size);
+void unitnos_procotol_send_command_with_binary_data1(unitnos_process *process,
+                                                     const char *command,
+                                                     void *data, size_t size);
 
 struct unitnos_protocol_command {
   /**

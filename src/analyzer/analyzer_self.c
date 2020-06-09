@@ -10,6 +10,7 @@
 #include "../containers/list.h"
 #include "../protocol.h"
 #include "../statistics.h"
+#include "../utils.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -44,6 +45,16 @@ static void list_paths(struct analyzer_state *state);
 int unitnos_analyzer_self_main(int in_pipe, int output_pipe) {
   log_debug("Started");
 
+  if (unitnos_procotol_init() == -1) {
+    log_error("Unable to initialize communication protocol");
+    exit(-1);
+  }
+
+  if (unitnos_set_non_blocking(in_pipe)) {
+    log_error("Unable to set input pipe to non-blocking mode");
+    exit(-1);
+  }
+
   FILE *fin = fdopen(in_pipe, "r");
 
   struct analyzer_state state = {0};
@@ -61,6 +72,8 @@ int unitnos_analyzer_self_main(int in_pipe, int output_pipe) {
   size_t message_size = 0;
 
   while (1) {
+    pause();
+
     if (getline(&message, &message_size, fin) >= 0) {
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);
       log_verbose("Received command: %s", command.command);
@@ -86,12 +99,16 @@ int unitnos_analyzer_self_main(int in_pipe, int output_pipe) {
       if (!strcmp(command.command, UNITNOS_ANALYZER_COMMAND_LIST_PATHS)) {
         list_paths(&state);
       }
+
+      if (!strcmp(command.command, UNITNOS_ANALYZER_COMMAND_CLOSE)) {
+        break;
+      }
     } else if (feof(fin)) {
       log_debug("Input pipe closed. Terminate");
-      unitnos_counter_delete(state.counter);
       break;
     }
   }
+  unitnos_counter_delete(state.counter);
 
   return 0;
 }
