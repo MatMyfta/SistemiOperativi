@@ -25,7 +25,7 @@ int unitnos_char_count_statistics_read(
   while (cnt != stat_content_message_size) {
     ssize_t ret = read(fd, message_buf + cnt, stat_content_message_size - cnt);
     if (ret == -1) {
-      if (errno != EINTR) {
+      if (errno != EINTR && errno != EAGAIN) {
         log_error("Unable to read statistics from fd %d: %s", fd,
                   strerror(errno));
         return ret;
