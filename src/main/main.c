@@ -90,6 +90,9 @@ int main() {
     return -1;
   }
 
+  unitnos_analyzer_set_n(g_analyzer, 3);
+  unitnos_analyzer_set_m(g_analyzer, 4);
+
   while (1) {
     printf("> ");
     if (getline(&command, &command_size, stdin) >= 0) {
