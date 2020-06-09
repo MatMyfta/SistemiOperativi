@@ -54,6 +54,10 @@ static void remove_file(struct p_state *state, const char *removed_file);
  * Process any message/commands from child processes "q"
  */
 static void process_q(struct p_state *state);
+/**
+ * Terminate all processes "q"
+ */
+static void terminate_q(struct p_state *state);
 
 /*******************************************************************************
  * Public functions implementation
@@ -109,6 +113,10 @@ int unitnos_p_self_main(int in_pipe, int output_pipe) {
         log_verbose("Received file: %s", command.value);
         remove_file(&state, command.value);
       }
+
+      if (!strcmp(command.command, UNITNOS_P_COMMAND_CLOSE)) {
+        break;
+      }
     } else if (errno == EAGAIN) {
       log_verbose("No message from parent");
     } else if (feof(fin)) {
@@ -127,9 +135,9 @@ static void q_destructor(void *value, void *user_data) {
   unitnos_q_destroy(value);
 }
 
-/*******************************************************************************
+/*****************************************
  * process_q and helpers
- *******************************************************************************/
+ ****************************************/
 static void on_new_statistics(unitnos_q *q, const char *file,
                               struct unitnos_char_count_statistics *statistics,
                               void *user_data) {
@@ -173,6 +181,18 @@ static bool process_each_q(void *value, void *user_data) {
 }
 static void process_q(struct p_state *state) {
   unitnos_list_foreach(state->q_list, process_each_q, state);
+}
+
+/*****************************************
+ * terminate_q and helpers
+ ****************************************/
+static bool terminate_each_q(void *value, void *user_data) {
+  unitnos_q *q = (unitnos_q *)value;
+  unitnos_q_destroy(q);
+  return false;
+}
+static void terminate_q(struct p_state *state) {
+  unitnos_list_foreach(state->q_list, terminate_each_q, state);
 }
 
 /*******************************************************************************

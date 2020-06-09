@@ -45,6 +45,10 @@ static void add_new_file_batch(struct counter_state *state,
                                const char *new_file);
 static void add_new_file_batch_finish(struct counter_state *state,
                                       const char *new_file);
+/**
+ * Terminate all processes "p"
+ */
+static void terminate_p(struct counter_state *state);
 
 /*******************************************************************************
  * Public functions implementation
@@ -119,6 +123,8 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
     }
   }
 
+  terminate_p(&state);
+
   return 0;
 }
 
@@ -149,6 +155,20 @@ static void dict_value_file_set_destroy(void *file_set, void *user_data) {
   unitnos_set_foreach(file_set, add_file_to_unassigned, user_data);
   unitnos_set_destroy(file_set);
 }
+
+/***************************************
+ * container related functions and helpers
+ **************************************/
+static bool terminate_each_p(void *key, void *value, void *user_data) {
+  unitnos_p *p = (unitnos_p *)key;
+  struct counter_state *state = (struct counter_state *)user_data;
+  unitnos_p_destroy(p);
+  return false;
+}
+static void terminate_p(struct counter_state *state) {
+  unitnos_dictionary_foreach(state->p_to_files, terminate_each_p, state);
+}
+
 /***************************************
  * set_n, add_new_file and helpers
  **************************************/

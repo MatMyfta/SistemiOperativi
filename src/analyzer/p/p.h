@@ -8,6 +8,7 @@ extern "C" {
 #define UNITNOS_P_COMMAND_SET_M "set_m"
 #define UNITNOS_P_COMMAND_ADD_NEW_FILE "add_new_file"
 #define UNITNOS_P_COMMAND_REMOVE_FILE "remove_file"
+#define UNITNOS_P_COMMAND_CLOSE "close"
 
 #define UNITNOS_P_SELF_COMMAND_SEND_STATISTICS_FILE "send_statistics_file"
 #define UNITNOS_P_SELF_COMMAND_SEND_STATISTICS_CONTENT "send_statistics_content"

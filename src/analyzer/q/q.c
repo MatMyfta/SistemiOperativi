@@ -29,26 +29,27 @@ unitnos_q *unitnos_q_create(void) {
     return p;
   }
 }
-void unitnos_q_destroy(unitnos_q *p) {
-  unitnos_process_close(p->process);
-  free(p);
+void unitnos_q_destroy(unitnos_q *q) {
+  unitnos_procotol_send_command1(q->process, UNITNOS_Q_COMMAND_CLOSE);
+  unitnos_process_close(q->process);
+  free(q);
 }
 
 void unitnos_q_set_ith(unitnos_q *q, unsigned int ith) {
-  unitnos_procotol_send_command_with_data1(q->process,
-                                 UNITNOS_Q_COMMAND_SET_ITH, "%u", ith);
+  unitnos_procotol_send_command_with_data1(
+      q->process, UNITNOS_Q_COMMAND_SET_ITH, "%u", ith);
 }
 void unitnos_q_set_siblings_cnt(unitnos_q *q, unsigned int m) {
-  unitnos_procotol_send_command_with_data1(q->process,
-                                 UNITNOS_Q_COMMAND_SET_SIBLINGS_CNT, "%u", m);
+  unitnos_procotol_send_command_with_data1(
+      q->process, UNITNOS_Q_COMMAND_SET_SIBLINGS_CNT, "%u", m);
 }
 void unitnos_q_add_new_file(unitnos_q *q, const char *file) {
-  unitnos_procotol_send_command_with_data1(q->process,
-                                 UNITNOS_Q_COMMAND_ADD_NEW_FILE, "%s", file);
+  unitnos_procotol_send_command_with_data1(
+      q->process, UNITNOS_Q_COMMAND_ADD_NEW_FILE, "%s", file);
 }
 void unitnos_q_remove_file(unitnos_q *q, const char *file) {
-  unitnos_procotol_send_command_with_data1(q->process,
-                                 UNITNOS_Q_COMMAND_REMOVE_FILE, "%s", file);
+  unitnos_procotol_send_command_with_data1(
+      q->process, UNITNOS_Q_COMMAND_REMOVE_FILE, "%s", file);
 }
 
 void unitnos_q_process(unitnos_q *q, struct unitnos_q_event_callbacks cbs,

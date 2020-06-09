@@ -79,8 +79,6 @@ int main() {
   size_t command_argv_size = 0;
   const char **command_argv = NULL;
 
-  unitnos_procotol_init();
-
   g_analyzer = unitnos_analyzer_create();
   if (!g_analyzer) {
     log_error("Unable to create analyzer");

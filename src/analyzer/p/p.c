@@ -26,6 +26,7 @@ unitnos_p *unitnos_p_create(void) {
   }
 }
 void unitnos_p_destroy(unitnos_p *p) {
+  unitnos_procotol_send_command1(p->process, UNITNOS_P_COMMAND_CLOSE);
   unitnos_process_close(p->process);
   free(p);
 }

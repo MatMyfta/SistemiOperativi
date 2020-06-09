@@ -35,6 +35,10 @@ void send_statistics(struct q_state *state, const char *file);
  * Public functions implementation
  *******************************************************************************/
 int unitnos_q_self_main(int in_pipe, int output_pipe) {
+  /*
+   * q just need to talk with the parent.
+   * The communication can be blocking.
+   */
   log_debug("Started");
 
   FILE *fin = fdopen(in_pipe, "r");
@@ -80,7 +84,8 @@ int unitnos_q_self_main(int in_pipe, int output_pipe) {
         send_statistics(&state, command.value);
       }
 
-      if (!strcmp(command.command, UNITNOS_Q_COMMAND_REMOVE_FILE)) {
+      if (!strcmp(command.command, UNITNOS_Q_COMMAND_CLOSE)) {
+        break;
       }
     } else if (feof(fin)) {
       log_debug("Input pipe closed. Terminate");
