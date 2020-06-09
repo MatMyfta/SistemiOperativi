@@ -40,7 +40,7 @@ enum unitnos_logger_log_level {
 #define UNITNOS_LOGGER_LOG_LVL_DEBUG 3
 #define UNITNOS_LOGGER_LOG_LVL_VERBOSE 4
 
-#define UNITNOS_LOGGER_LOG_LEVEL UNITNOS_LOGGER_LOG_LVL_VERBOSE
+#define UNITNOS_LOGGER_LOG_LEVEL UNITNOS_LOGGER_LOG_LVL_INFO
 
 /**
  * Build to initial portion of the log string
