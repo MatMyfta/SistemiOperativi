@@ -313,7 +313,7 @@ static int send_ack(char *value) {
   char *tmp1 = concat(tmp, value);
   char *message_to_send = concat(tmp1, "\n");
   message_to_send[(strlen(message_to_send))] = '\0';
-  send_message(message_to_send);
+  ret_value=send_message(message_to_send);
   return ret_value;
 }
 
