@@ -93,6 +93,18 @@ struct unitnos_protocol_command {
  * it. Pay attention when dealing with memory management.
  */
 struct unitnos_protocol_command unitnos_protocol_parse(char *message);
+/**
+ * Utility function that splits a command into command name and binary value.
+ * The newline delimiter is stripped.
+ *
+ * \param [in] message a string terminated with a '\n'
+ * \param [in] binary_data_size the size of the binary data
+ *
+ * Note that with function modifies the given message and returns pointers to
+ * it. Pay attention when dealing with memory management.
+ */
+struct unitnos_protocol_command
+unitnos_protocol_parse_binary(char *message, size_t binary_data_size);
 
 #ifdef __cplusplus
 }

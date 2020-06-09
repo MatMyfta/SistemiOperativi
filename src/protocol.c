@@ -77,7 +77,6 @@ void unitnos_procotol_send_command_with_binary_data(int fd, pid_t pid,
   buf[command_len] = ':';
   strncpy(buf + command_len + 1, data, size);
   buf[command_len + 1 + size] = '\n';
-  printf("BUF SIZE: %lu", sizeof(buf));
   unitnos_procotol_write(fd, pid, buf, sizeof(buf));
 }
 
@@ -102,5 +101,19 @@ struct unitnos_protocol_command unitnos_protocol_parse(char *message) {
     *delim = '\0';
   }
 
+  return command;
+}
+
+struct unitnos_protocol_command
+unitnos_protocol_parse_binary(char *message, size_t binary_data_size) {
+  struct unitnos_protocol_command command;
+  command.command = message;
+
+  char *delim = strchr(message, ':');
+  assert(delim != NULL);
+  *delim = '\0';
+
+  command.value = delim + 1;
+  assert(*(command.value + binary_data_size) == '\n');
   return command;
 }

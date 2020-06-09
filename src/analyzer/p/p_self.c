@@ -94,6 +94,7 @@ int unitnos_p_self_main(int in_pipe, int output_pipe) {
 
     while ((message_len =
                 unitnos_getline(&message, &message_buf_size, in_pipe)) > 0) {
+      log_verbose("Received message %s", message);
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);
       log_verbose("Received command: %s", command.command);
 
@@ -155,7 +156,7 @@ static void q_destructor(void *value, void *user_data) {
 static void on_new_statistics(unitnos_q *q, const char *file,
                               struct unitnos_char_count_statistics *statistics,
                               void *user_data) {
-  log_verbose("Received partial statistics for file %s", file);
+  log_debug("Received partial statistics for file %s", file);
   struct p_state *state = (struct p_state *)user_data;
 
   struct file_statistics *stat =

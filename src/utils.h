@@ -47,8 +47,8 @@ int unitnos_set_blocking(int fd);
  * * uses file descriptor instead of stream
  * * handles signal interruption
  */
-ssize_t unitnos_getline(char ** line, size_t *size, int fd);
-void* unitnos_realloc(void *ptr, size_t new_size);
+ssize_t unitnos_getline(char **line, size_t *size, int fd);
+void *unitnos_realloc(void *ptr, size_t new_size);
 
 #ifdef __cplusplus
 }

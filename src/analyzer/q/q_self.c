@@ -86,7 +86,7 @@ int unitnos_q_self_main(int in_pipe, int output_pipe) {
          */
         assert(state.siblings_cnt > 0);
         assert(state.ith >= 0);
-        /*send_statistics(&state, command.value);*/
+        send_statistics(&state, command.value);
       }
 
       if (!strcmp(command.command, UNITNOS_Q_COMMAND_CLOSE)) {

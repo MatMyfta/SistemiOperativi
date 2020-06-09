@@ -26,9 +26,6 @@ int unitnos_char_count_statistics_read(
   size_t cnt = 0;
   while (cnt != stat_content_message_size) {
     ssize_t ret = read(fd, message_buf + cnt, stat_content_message_size - cnt);
-    printf("CNT: %lu, re: %ld\n", cnt, ret);
-    printf("message_buf: %.*s\n-------------", (int)stat_content_message_size,
-           message_buf);
     if (ret == -1) {
       log_error("Unable to read statistics from fd %d: %s", fd,
                 strerror(errno));
@@ -37,10 +34,9 @@ int unitnos_char_count_statistics_read(
     cnt += ret;
   }
 
-  struct unitnos_protocol_command cmd = unitnos_protocol_parse(message_buf);
-  printf("%s, %s\n", cmd.command, command_name);
+  struct unitnos_protocol_command cmd = unitnos_protocol_parse_binary(
+      message_buf, sizeof(struct unitnos_char_count_statistics));
   assert(!strcmp(cmd.command, command_name));
   memcpy(stat, cmd.value, sizeof(struct unitnos_char_count_statistics));
-
   return 0;
 }

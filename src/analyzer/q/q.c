@@ -60,11 +60,12 @@ void unitnos_q_process(unitnos_q *q, struct unitnos_q_event_callbacks cbs,
     return;
   }
 
-  FILE *fin = fdopen(in_pipe, "r");
   char *message = NULL;
-  size_t message_size = 0;
+  size_t message_buf_size = 0;
+  ssize_t message_len = 0;
 
-  if (getline(&message, &message_size, fin) >= 0) {
+  while ((message_len = unitnos_getline(&message, &message_buf_size, in_pipe)) >
+         0) {
     struct unitnos_protocol_command command = unitnos_protocol_parse(message);
 
     log_verbose("Received from child: %s", command.command);
@@ -81,9 +82,14 @@ void unitnos_q_process(unitnos_q *q, struct unitnos_q_event_callbacks cbs,
         cbs.on_new_statistics(q, file, &stat, user_data);
       }
     }
+  }
 
-  } else if (errno == EAGAIN) {
-    log_verbose("No message from child");
+  if (message_len == 0) {
+    log_error("Child input pipe closed. Unexpected child termination");
+  }
+
+  if (errno == EAGAIN) {
+    log_debug("No message from child");
   } else {
     log_error("Unable to read from child: %s", strerror(errno));
   }
