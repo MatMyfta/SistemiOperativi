@@ -53,6 +53,7 @@ static int independent_analyzer_main(int argc, char **argv) {
       unitnos_analyzer_add_new_path(analyzer, argv[i]);
     }
   }
+
   unitnos_analyzer_delete(analyzer);
   return 0;
 }

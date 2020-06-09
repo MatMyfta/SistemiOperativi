@@ -14,13 +14,13 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <sys/stat.h>
-#include <sys/types.h> 
+#include <sys/types.h>
+#include <unistd.h>
 
 #define unitnos_fifo "/tmp/unitnos_fifo"
 #define ack_end "ACK_END"
@@ -56,9 +56,9 @@ static void process_counter(struct analyzer_state *state);
  */
 static void command_global(struct unitnos_protocol_command command);
 static void command_path(struct unitnos_protocol_command command);
-static int send_message(char* message_to_send);
-static char* read_message(int size);
-static char* concat(const char *s1, const char *s2);
+static int send_message(char *message_to_send);
+static char *read_message(int size);
+static char *concat(const char *s1, const char *s2);
 
 /*******************************************************************************
  * Public functions implementation
@@ -93,15 +93,18 @@ int unitnos_analyzer_self_main(int in_pipe, int output_pipe) {
   size_t message_buf_size = 0;
   ssize_t message_len = 0;
 
+#if 0
   int fd;
   mkfifo(unitnos_fifo, 0666);
   char received[MAX_SIZE_MESSAGE];
   ssize_t nread;
   fd = open(unitnos_fifo, O_RDONLY | O_NONBLOCK);
+#endif
 
   while (1) {
     unitnos_procotol_wait();
 
+#if 0
     /**
      *lettura non bloccante su FIFO, se trova COMANDO avvia operazioni bloccanti
      */
@@ -130,6 +133,7 @@ int unitnos_analyzer_self_main(int in_pipe, int output_pipe) {
         fd = open(unitnos_fifo, O_RDONLY | O_NONBLOCK);
       }; break;
     }
+#endif
 
     process_counter(&state);
 
@@ -334,90 +338,94 @@ static void list_paths(struct analyzer_state *state) {
  *************************************/
 static void command_global(struct unitnos_protocol_command command) {
   // DA DEFINIRE LA STRINGA
-  send_message(concat("STATISTICA globale - type: ",command.value));
+  send_message(concat("STATISTICA globale - type: ", command.value));
 }
 static void command_path(struct unitnos_protocol_command command) {
-    char* path = "prova_path.txt";
-    char* response;
-    log_verbose("%s\n", "Command_path requested");
-    int numero_path = 4, i = 0;
-    while ((i>=0) && (i<numero_path)) {
-        send_message(concat("STATISTICA per path:", path));
+  char *path = "prova_path.txt";
+  char *response;
+  log_verbose("%s\n", "Command_path requested");
+  int numero_path = 4, i = 0;
+  while ((i >= 0) && (i < numero_path)) {
+    send_message(concat("STATISTICA per path:", path));
+    response = read_message(MAX_SIZE_MESSAGE);
+    if (response != NULL) {
+      struct unitnos_protocol_command second_command =
+          unitnos_protocol_parse(response);
+      if ((strcmp(second_command.command, "ack") == 0) &&
+          (strcmp(second_command.value, "1") == 0)) { // lazy evaluation
+        send_message(concat("VALORE STATISTICA", command.value));
         response = read_message(MAX_SIZE_MESSAGE);
-        if (response!=NULL) {
-            struct unitnos_protocol_command second_command = unitnos_protocol_parse(response);
-            if ((strcmp(second_command.command, "ack")==0) && (strcmp(second_command.value,"1")==0)) { //lazy evaluation
-                send_message(concat("VALORE STATISTICA", command.value));
-                response = read_message(MAX_SIZE_MESSAGE);
-                if (response!=NULL) {
-                    struct unitnos_protocol_command third_command = unitnos_protocol_parse(response);
-                    if ((strcmp(second_command.command, "ack")==0) && (strcmp(third_command.value,"1")==0)) //lazy evaluation
-                        i++;
-                    else {
-                        send_message(ack_end);
-                        i=-1;
-                    }
-                } else {
-                    send_message(ack_end);
-                    i=-1;
-                }
-            } else {
-                send_message(ack_end);
-                i=-1;
-            }
-        } else {
+        if (response != NULL) {
+          struct unitnos_protocol_command third_command =
+              unitnos_protocol_parse(response);
+          if ((strcmp(second_command.command, "ack") == 0) &&
+              (strcmp(third_command.value, "1") == 0)) // lazy evaluation
+            i++;
+          else {
             send_message(ack_end);
-            i=-1;
+            i = -1;
+          }
+        } else {
+          send_message(ack_end);
+          i = -1;
         }
+      } else {
+        send_message(ack_end);
+        i = -1;
+      }
+    } else {
+      send_message(ack_end);
+      i = -1;
     }
-    send_message(ack_end);
+  }
+  send_message(ack_end);
 }
 static int send_message(char *message_to_send) {
-    int fd, ret_value;
-    fd = open(unitnos_fifo, O_WRONLY);
-    if (fd==-1) {
-        log_error("Failed opening named pipe");
-        ret_value = 1;
+  int fd, ret_value;
+  fd = open(unitnos_fifo, O_WRONLY);
+  if (fd == -1) {
+    log_error("Failed opening named pipe");
+    ret_value = 1;
+  } else {
+    if (write(fd, message_to_send, strlen(message_to_send) + 1) == -1) {
+      log_error("Failed writing on named pipe");
+      ret_value = 1;
     } else {
-        if (write(fd, message_to_send, strlen(message_to_send)+1)==-1) {
-            log_error("Failed writing on named pipe");
-            ret_value = 1;
-        } else {
-            ret_value = 0;
-        }
-        close(fd);
+      ret_value = 0;
     }
-    return ret_value;
+    close(fd);
+  }
+  return ret_value;
 }
-static char* read_message(int size) {
-    char* ret_value;
-    int fd;
-    ssize_t readed;
-    char *message_to_read = malloc(size +1);
-    fd = open(unitnos_fifo, O_RDONLY);
-    if (fd==-1) {
-        log_error("Failed opening named pipe");
-        free(message_to_read);
-        ret_value=NULL;
+static char *read_message(int size) {
+  char *ret_value;
+  int fd;
+  ssize_t readed;
+  char *message_to_read = malloc(size + 1);
+  fd = open(unitnos_fifo, O_RDONLY);
+  if (fd == -1) {
+    log_error("Failed opening named pipe");
+    free(message_to_read);
+    ret_value = NULL;
+  } else {
+    readed = read(fd, message_to_read, size + 1);
+    if (readed == -1) {
+      log_error("Failed writing on named pipe");
+      free(message_to_read);
+      ret_value = NULL;
     } else {
-        readed=read(fd, message_to_read, size +1);
-        if (readed==-1) {
-            log_error("Failed writing on named pipe");
-            free(message_to_read);
-            ret_value=NULL;
-        } else {
-            message_to_read[readed]='\0';
-            ret_value = message_to_read;
-        }
-        close(fd);
+      message_to_read[readed] = '\0';
+      ret_value = message_to_read;
     }
-    return ret_value;  
+    close(fd);
+  }
+  return ret_value;
 }
 
-static char* concat(const char *s1, const char *s2)
-{
-    char *result = malloc(strlen(s1) + strlen(s2) + 1); // +1 for the null-terminator
-    strcpy(result, s1);
-    strcat(result, s2); 
-    return result;
+static char *concat(const char *s1, const char *s2) {
+  char *result =
+      malloc(strlen(s1) + strlen(s2) + 1); // +1 for the null-terminator
+  strcpy(result, s1);
+  strcat(result, s2);
+  return result;
 }
