@@ -1,5 +1,14 @@
 #include "report.h"
 
+#include "../logger.h"
+#include "../protocol.h"
+#include "../utils.h"
+
+struct unitnos_report {
+  unitnos_process *process;
+  FILE *fin;
+};
+
 static char* get_character (int i) {
 	char *ret = malloc(8);
 

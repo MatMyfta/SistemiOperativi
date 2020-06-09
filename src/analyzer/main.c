@@ -74,8 +74,6 @@ static int independent_analyzer_main(int argc, char **argv) {
     switch (nread) {
       case -1: {
         if (errno == EAGAIN) {
-          log_verbose("%s\n", "no message");
-          sleep(1);
           break;
         } else {
           log_error("%s\n", "Error with reading");
@@ -83,7 +81,6 @@ static int independent_analyzer_main(int argc, char **argv) {
         }; break;
       }
       case 0: {
-        log_verbose("%s\n", "EOF reached");
       }; break;
       default: {
         close(fd);
@@ -95,8 +92,6 @@ static int independent_analyzer_main(int argc, char **argv) {
         fd = open(unitnos_fifo, O_RDONLY | O_NONBLOCK);
       }; break;
     }
-    log_verbose("- - -\n");
-    sleep(3);
     //unitnos_counter_process(counter);
   }
   unitnos_counter_delete(counter);
