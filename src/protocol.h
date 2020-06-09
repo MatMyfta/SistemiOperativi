@@ -26,8 +26,12 @@ extern "C" {
  * \retval -1 failure
  */
 int unitnos_procotol_init();
-int unitnos_procotol_deinit();
+/**
+ * Wait for a SIGUSR1 signal
+ */
+void unitnos_procotol_wait();
 
+void unitnos_procotol_write(int fd, pid_t pid, void *buf, size_t size);
 void unitnos_procotol_send_command(int fd, pid_t pid, const char *command);
 void unitnos_procotol_send_command1(unitnos_process *process,
                                     const char *command);
@@ -42,8 +46,7 @@ void unitnos_procotol_send_command1(unitnos_process *process,
     buf[command_len] = ':';                                                    \
     sprintf(buf + command_len + 1, fmt, args);                                 \
     buf[sizeof(buf) - 1] = '\n';                                               \
-    write(fd, buf, sizeof buf);                                                \
-    kill(pid, SIGUSR1);                                                        \
+    unitnos_procotol_write(fd, pid, buf, sizeof(buf));                         \
   } while (0)
 #define unitnos_procotol_send_command_with_data1(process, command, fmt,        \
                                                  args...)                      \
