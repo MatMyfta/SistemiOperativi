@@ -1,7 +1,7 @@
 CFLAGS = -std=gnu90 -Wall -Wextra -Wno-unused
 SRCS := $(shell find ./src/ -type f -iname "*.c")
 DEPENDS := $(patsubst %.c,%.d,$(SRCS))
-EXECUTABLES_NAMES := main analyzer counter p q
+EXECUTABLES_NAMES := main report analyzer counter p q
 BINARY_OUTPUT_PREFIX := bin
 EXECUTABLES := $(addprefix ${BINARY_OUTPUT_PREFIX}/, $(EXECUTABLES_NAMES))
 
@@ -32,6 +32,11 @@ ${EXECUTABLES}: $(wildcard *.o) $(wildcard *.a)
 ${BINARY_OUTPUT_PREFIX}/main: \
 	./src/main/main.o \
 	./src/analyzer/libanalyzer_api.a \
+	./src/libcommon.a \
+	./src/containers/libcontainers.a
+${BINARY_OUTPUT_PREFIX}/report: \
+	src/report/main.o \
+	src/report/report.o \
 	./src/libcommon.a \
 	./src/containers/libcontainers.a
 ${BINARY_OUTPUT_PREFIX}/analyzer: \
