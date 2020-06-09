@@ -94,7 +94,6 @@ int unitnos_p_self_main(int in_pipe, int output_pipe) {
 
     while ((message_len =
                 unitnos_getline(&message, &message_buf_size, in_pipe)) > 0) {
-      log_verbose("Received message %s", message);
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);
       log_verbose("Received command: %s", command.command);
 
@@ -171,7 +170,9 @@ static void on_new_statistics(unitnos_q *q, const char *file,
 
   // merge new partial statistics into whole-file statistics
   size_t i;
-  for (i = 0; i < sizeof(stat->statistics.counts); ++i) {
+  for (i = 0;
+       i < sizeof(stat->statistics.counts) / sizeof(stat->statistics.counts[0]);
+       ++i) {
     stat->statistics.counts[i] += statistics->counts[i];
   }
 
@@ -282,17 +283,16 @@ static void set_m(struct p_state *state, unsigned int m) {
     }
   }
 
-  unitnos_list_foreach(state->q_list, send_new_m, &context);
   // m has changed. Invalidate the statistics.
   unitnos_dictionary_foreach(state->file_statistics_dict, invalidate_statistics,
                              state);
+  unitnos_list_foreach(state->q_list, send_new_m, &context);
 }
 
 /*******************************************************************************
  * add_new_file and helpers
  *******************************************************************************/
 static bool send_new_path(void *value, void *user_data) {
-  log_verbose("Sending path to q");
   const char *file = (const char *)user_data;
   unitnos_q *q = (unitnos_q *)value;
   unitnos_q_add_new_file(q, file);
