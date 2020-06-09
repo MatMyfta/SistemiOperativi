@@ -53,6 +53,11 @@ void unitnos_analyzer_list_paths(unitnos_analyzer *analyzer) {
   unitnos_procotol_send_command1(analyzer->process,
                                  UNITNOS_ANALYZER_COMMAND_LIST_PATHS);
 }
+
+void unitnos_analyzer_status_panel(unitnos_analyzer *analyzer) {
+  unitnos_procotol_send_command1(analyzer->process,
+                                 UNITNOS_ANALYZER_COMMAND_STATUS_PANEL);
+}
 void unitnos_analyzer_process(unitnos_analyzer *analyzer) {
   char *message = NULL;
   size_t message_size = 0;

@@ -46,6 +46,10 @@ void unitnos_counter_set_m(unitnos_counter *counter, unsigned int m) {
   unitnos_procotol_send_command_with_data1(
       counter->process, UNITNOS_COUNTER_COMMAND_SET_M, "%u", m);
 }
+void unitnos_counter_status_panel(unitnos_counter *counter) {
+  unitnos_procotol_send_command1(counter->process,
+                                 UNITNOS_COUNTER_COMMAND_STATUS_PANEL);
+}
 
 struct add_new_file_batch_context {
   unitnos_counter *counter;

@@ -16,6 +16,8 @@ extern "C" {
 #define UNITNOS_Q_SELF_COMMAND_SEND_STATISTICS_FILE "send_statistics_file"
 #define UNITNOS_Q_SELF_COMMAND_SEND_STATISTICS_CONTENT "send_statistics_content"
 
+#include <stdlib.h>
+
 /*******************************************************************************
  * API for parent process
  *******************************************************************************/
@@ -27,6 +29,7 @@ struct unitnos_q_event_callbacks {
 };
 unitnos_q *unitnos_q_create(void);
 void unitnos_q_destroy(unitnos_q *q);
+pid_t unitnos_q_get_pid(unitnos_q *q);
 void unitnos_q_set_ith(unitnos_q *q, unsigned int ith);
 void unitnos_q_set_siblings_cnt(unitnos_q *q, unsigned int m);
 void unitnos_q_add_new_file(unitnos_q *q, const char *file);

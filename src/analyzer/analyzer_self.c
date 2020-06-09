@@ -82,8 +82,8 @@ int unitnos_analyzer_self_main(int in_pipe, int output_pipe) {
 
     process_counter(&state);
 
-    while ((message_len = unitnos_getline(&message, &message_buf_size, in_pipe)) >
-        0) {
+    while ((message_len =
+                unitnos_getline(&message, &message_buf_size, in_pipe)) > 0) {
       struct unitnos_protocol_command command = unitnos_protocol_parse(message);
       log_verbose("Received command: %s", command.command);
 
@@ -107,6 +107,11 @@ int unitnos_analyzer_self_main(int in_pipe, int output_pipe) {
 
       if (!strcmp(command.command, UNITNOS_ANALYZER_COMMAND_LIST_PATHS)) {
         list_paths(&state);
+      }
+
+      if (!strcmp(command.command, UNITNOS_ANALYZER_COMMAND_STATUS_PANEL)) {
+        printf("Analyzer at PID %u\n", getpid());
+        unitnos_counter_status_panel(state.counter);
       }
 
       if (!strcmp(command.command, UNITNOS_ANALYZER_COMMAND_CLOSE)) {

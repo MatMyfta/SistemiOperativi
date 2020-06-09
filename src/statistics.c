@@ -27,7 +27,7 @@ int unitnos_char_count_statistics_read(
     if (ret == -1) {
       if (errno != EINTR) {
         log_error("Unable to read statistics from fd %d: %s", fd,
-            strerror(errno));
+                  strerror(errno));
         return ret;
       } else {
         continue;

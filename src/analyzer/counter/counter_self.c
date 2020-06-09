@@ -43,6 +43,7 @@ static void dict_key_p_destroy(void *p, void *user_data);
 static void dict_value_file_set_destroy(void *file_set, void *user_data);
 static void set_n(struct counter_state *state, unsigned int n);
 static void set_m(struct counter_state *state, unsigned int m);
+static void status_panel(struct counter_state *state);
 static void add_new_file_batch(struct counter_state *state,
                                const char *new_file);
 static void add_new_file_batch_finish(struct counter_state *state,
@@ -125,6 +126,10 @@ int unitnos_counter_self_main(int in_pipe, int output_pipe) {
                   UNITNOS_COUNTER_COMMAND_ADD_NEW_FILE_BATCH_FINISH)) {
         log_verbose("Received file: %s", command.value);
         add_new_file_batch_finish(&state, command.value);
+      }
+
+      if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_STATUS_PANEL)) {
+        status_panel(&state);
       }
 
       if (!strcmp(command.command, UNITNOS_COUNTER_COMMAND_CLOSE)) {
@@ -363,4 +368,21 @@ static void set_m(struct counter_state *state, unsigned int m) {
   log_debug("Updating m of %lu \"p\"",
             unitnos_dictionary_size(state->p_to_files));
   unitnos_dictionary_foreach(state->p_to_files, set_m_foreach_p, state);
+}
+
+/***************************************
+ * status_panel and helpers
+ **************************************/
+static bool status_foreach_p(void *key, void *value, void *user_data) {
+  struct counter_state *state = (struct counter_state *)user_data;
+  unitnos_p *p = (unitnos_p *)key;
+  printf("\t\tP PID %u - #%i Q subprocesses:\n", unitnos_p_get_pid(p), state->m);
+  unitnos_p_status(p);
+  usleep(50000);
+  return false;
+}
+
+static void status_panel(struct counter_state *state) {
+  printf("\tCounter at PID %u - #%i P subprocess:\n", getpid(), state->n);
+  unitnos_dictionary_foreach(state->p_to_files, status_foreach_p, state);
 }

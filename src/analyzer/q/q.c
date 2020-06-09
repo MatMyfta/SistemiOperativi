@@ -34,7 +34,9 @@ void unitnos_q_destroy(unitnos_q *q) {
   unitnos_process_close(q->process);
   free(q);
 }
-
+pid_t unitnos_q_get_pid(unitnos_q *q) {
+  return unitnos_process_get_pid(q->process);
+}
 void unitnos_q_set_ith(unitnos_q *q, unsigned int ith) {
   unitnos_procotol_send_command_with_data1(
       q->process, UNITNOS_Q_COMMAND_SET_ITH, "%u", ith);

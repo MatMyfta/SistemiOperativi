@@ -10,10 +10,12 @@ extern "C" {
 #define UNITNOS_P_COMMAND_SET_M "set_m"
 #define UNITNOS_P_COMMAND_ADD_NEW_FILE "add_new_file"
 #define UNITNOS_P_COMMAND_REMOVE_FILE "remove_file"
+#define UNITNOS_P_COMMAND_STATUS "status"
 #define UNITNOS_P_COMMAND_CLOSE "close"
 
 #define UNITNOS_P_SELF_COMMAND_SEND_STATISTICS_FILE "send_statistics_file"
 #define UNITNOS_P_SELF_COMMAND_SEND_STATISTICS_CONTENT "send_statistics_content"
+#include <stdlib.h>
 
 /*******************************************************************************
  * API for parent process
@@ -24,6 +26,8 @@ void unitnos_p_set_m(unitnos_p *p, unsigned int m);
 void unitnos_p_add_new_file(unitnos_p *p, const char *file);
 void unitnos_p_remove_file(unitnos_p *p, const char *file);
 void unitnos_p_destroy(unitnos_p *p);
+pid_t unitnos_p_get_pid(unitnos_p *p);
+void unitnos_p_status(unitnos_p *p);
 
 struct unitnos_p_event_callbacks {
   void (*on_new_statistics)(unitnos_p *p, const char *file,
