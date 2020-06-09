@@ -25,6 +25,8 @@ int main(int argc, char *argv[]) {
   }
 }
 
+static sig_atomic_t g_sigterm_received = 0;
+static void sigterm(int signo) { g_sigterm_received++; }
 static int independent_analyzer_main(int argc, char **argv) {
   log_debug("Analyzer running in standalone mode");
   if (argc < 4) {
@@ -36,6 +38,12 @@ static int independent_analyzer_main(int argc, char **argv) {
   int m = atoi(argv[2]);
   if (n <= 0 || m <= 0) {
     log_error("Invalid parameters: N and M must be greater than 0");
+    return -1;
+  }
+
+  if (signal(SIGTERM, sigterm) == SIG_ERR) {
+    log_error("Unable to register SIGTERM handler");
+    exit(-1);
   }
 
   unitnos_analyzer *analyzer = unitnos_analyzer_create();
@@ -52,6 +60,9 @@ static int independent_analyzer_main(int argc, char **argv) {
     for (i = 3; i < argc; ++i) {
       unitnos_analyzer_add_new_path(analyzer, argv[i]);
     }
+  }
+
+  while (!g_sigterm_received) {
   }
 
   unitnos_analyzer_delete(analyzer);
