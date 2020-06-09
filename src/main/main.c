@@ -78,6 +78,12 @@ struct command g_commands[] = {
  */
 static void parse(char *line, int *argc, const char ***argv, size_t *n);
 
+/*******************************************************************************
+ * Public functions implementation
+ *******************************************************************************/
+static sig_atomic_t g_sigterm_received = 0;
+static void sigterm(int signo) { g_sigterm_received++; }
+
 int main() {
   char *command = NULL;
   size_t command_size = 0;
@@ -85,6 +91,11 @@ int main() {
   int command_argc = 0;
   size_t command_argv_size = 0;
   const char **command_argv = NULL;
+
+  if (signal(SIGTERM, sigterm) == SIG_ERR) {
+    log_error("Unable to register SIGTERM handler");
+    exit(-1);
+  }
 
   if (unitnos_procotol_init() == -1) {
     log_error("Unable to initialize communication protocol");
@@ -100,7 +111,7 @@ int main() {
   unitnos_analyzer_set_n(g_analyzer, 3);
   unitnos_analyzer_set_m(g_analyzer, 4);
 
-  while (1) {
+  while (!g_sigterm_received) {
     printf("> ");
     if (getline(&command, &command_size, stdin) >= 0) {
       parse(command, &command_argc, &command_argv, &command_argv_size);

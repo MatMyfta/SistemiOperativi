@@ -67,8 +67,16 @@ static void q_status(struct p_state *state);
 /*******************************************************************************
  * Public functions implementation
  *******************************************************************************/
+static sig_atomic_t g_sigterm_received = 0;
+static void sigterm(int signo) { g_sigterm_received++; }
+
 int unitnos_p_self_main(int in_pipe, int output_pipe) {
   log_debug("Started");
+
+  if (signal(SIGTERM, sigterm) == SIG_ERR) {
+    log_error("Unable to register SIGTERM handler");
+    exit(-1);
+  }
 
   if (unitnos_procotol_init() == -1) {
     log_error("Unable to initialize communication protocol");
@@ -93,7 +101,7 @@ int unitnos_p_self_main(int in_pipe, int output_pipe) {
   size_t message_buf_size = 0;
   ssize_t message_len = 0;
 
-  while (1) {
+  while (!g_sigterm_received) {
     unitnos_procotol_wait();
 
     process_q(&state);
